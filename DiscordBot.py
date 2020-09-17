@@ -8,9 +8,6 @@ bot = commands.Bot(command_prefix='}')
 bot.remove_command('help')
 botfest = ID Here #botfest
 general = ID Here #general
-botTest = ID Here #bot_test
-vc_channel = ID Here #vc-for-mutes
-raid_channel = ID Here #raids
 danchou = '<@&ID Here>'
 officers = '<@&ID Here>'
 haipa = ID Here
@@ -31,9 +28,7 @@ async def on_message(message):
         return
     elif message.author == nadeko:
         if message.content.startswith('}down'):
-            if message.content.endswith('mutes'):
-                downSpamBot.start(vc_channel)
-            elif message.content.endswith('general'):
+            if message.content.endswith('general'):
                 downSpamBot.start(general)
             else:
                 downSpamBot.start(botfest)
@@ -48,8 +43,8 @@ async def on_message(message):
 
 #send RAID: SHADOW LEGENDS
     if message.content.lower().find('ra') != -1:
-        if message.content.lower().find('ai') > message.content.lower().find('ra'):
-            if message.content.lower().find('id') > message.content.lower().find('ai'):
+        if message.content.lower().find('aai') > message.content.lower().find('ra'):
+            if message.content.lower().find('id') > message.content.lower().find('aai'):
                 await sendSinglePic(message.channel, 'https://i.imgur.com/eywxw5g.gif')
     
     await bot.process_commands(message)
@@ -57,7 +52,7 @@ async def on_message(message):
 #============== BOT COMMANDS ==============================
 @bot.command(pass_context = True)
 async def help(ctx):
-    embed = discord.Embed(colour = discord.Colour.orange())
+    embed = discord.Embed(colour = discord.Colour.teal())
     embed.set_author(name='Help')
     embed.add_field(name='}down', value='Spams random "Buff is down" images', inline=False)
     embed.add_field(name='}up', value='Sends a random "Buff is up" image', inline=False)
@@ -65,8 +60,8 @@ async def help(ctx):
     embed.add_field(name='}truck [@ someone]', value='Sends a truck after that person', inline=False)
     embed.add_field(name='}bonk [@ someone]', value='Bonks that person', inline=False)
     embed.add_field(name='}riot', value='Time to RIOT!!', inline=False)
-    embed.add_field(name='Other Features', value='Send 5 "a"s\nSend "cricket cricket"\nSend "raid"', inline=False)
-    embed.add_field(name='Source Code', value='https://github.com/shironats/Buffbot/blob/Update-01/08/DiscordBot.py', inline=False)
+    embed.add_field(name='Other Features', value='Send 5 "a"s\nSend "cricket cricket"\nSend "raaid"', inline=False)
+    embed.add_field(name='Source Code', value='https://github.com/shironats/Buffbot/blob/Update-10/08/DiscordBot.py', inline=False)
     await ctx.send(embed=embed)
 
 @bot.command()
@@ -112,10 +107,15 @@ async def checkImages(ctx):
         await sendSinglePic(ctx, link)
 
 @bot.command()
+async def isekai(ctx, member: discord.Member):
+    """Same as }truck"""
+    await truck(ctx, member)
+ 
+@bot.command()
 async def truck(ctx, member: discord.Member):
     """Sends a truck over"""
     link = truckImages[random.randint(0,len(truckImages)-1)]
-    embed = discord.Embed(colour = discord.Colour.red())
+    embed = discord.Embed(colour = discord.Colour.teal())
     embed.set_footer(text='{0.display_name}, {1.display_name} sends their regards.'.format(member, ctx.message.author))
     embed.set_image(url='attachment://img%s' %(link[27:]))
     await sendSinglePic(ctx, link, embed)
@@ -124,7 +124,7 @@ async def truck(ctx, member: discord.Member):
 async def bonk(ctx, member: discord.Member):
     """Bonks a member"""
     link = bonkImages[random.randint(0,len(bonkImages)-1)]
-    embed = discord.Embed(colour = discord.Colour.blurple())
+    embed = discord.Embed(colour = discord.Colour.teal())
     if (member == bot.get_user(self)):
         embed.set_footer(text='{0.display_name} has been BONKED by {1.display_name} for being bad.'.format(ctx.message.author, member))
     else:
@@ -150,22 +150,23 @@ async def downSpamBot(target_channel):
     await sendPics(msgChannel, link, True, downSpamBot.current_loop)
 
 #============== IMAGES ============================
-downImages = ['https://i.imgur.com/Ns9DV9R.jpg',
-              'https://i.imgur.com/EGDsKdv.png',
+downImages = ['https://i.imgur.com/q4H83FZ.jpg',
+              'https://i.imgur.com/h2V3SaO.jpg',
               'https://i.imgur.com/SDRmkhD.jpg',
               'https://i.imgur.com/uJp4D7C.jpg',
               'https://i.imgur.com/agYqbci.jpg',
-              'https://i.imgur.com/H7bos6u.gif',
-              'https://i.imgur.com/NngbAJi.png']
+              'https://i.imgur.com/g5WXEY7.gif',
+              'https://i.imgur.com/Jo6Rvsi.jpg']
 
-upImages = ['https://i.imgur.com/1FaipNk.png',
-            'https://i.imgur.com/kEOah4r.jpg']
+upImages = ['https://i.imgur.com/ueO6Lrn.jpg',
+            'https://i.imgur.com/mVF83k7.jpg']
 
-truckImages = ['https://i.imgur.com/qYhwU3x.gif',
-               'https://i.imgur.com/PWEibqW.gif']
+truckImages = ['https://i.imgur.com/XMG3BXZ.gif',
+               'https://i.imgur.com/xYM56uZ.gif',
+               'https://i.imgur.com/oRMKp3k.gif']
 
-bonkImages = ['https://i.imgur.com/3e1P8oW.gif',
-              'https://i.imgur.com/fIWm3Hh.gif',
+bonkImages = ['https://i.imgur.com/h2di9EZ.gif',
+              'https://i.imgur.com/yXhqh1d.gif',
               'https://i.imgur.com/fmZY9dV.gif',
               'https://i.imgur.com/VkYz0vr.gif',
               'https://i.imgur.com/ngj9zmN.jpg']
