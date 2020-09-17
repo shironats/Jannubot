@@ -6,14 +6,15 @@ import random
 
 bot = commands.Bot(command_prefix='}')
 bot.remove_command('help')
-botfest = ID Here #botfest
-general = ID Here #general
-danchou = '<@&ID Here>'
-officers = '<@&ID Here>'
-haipa = ID Here
-self = ID Here
-sol = ID Here
-nadekoBOT = ID Here
+botfest = blahblahblah #botfest
+general = blahblahblah #general
+danchou = '<@&blahblahblah>'
+officers = '<@&blahblahblah>'
+haipa = blahblahblah
+self = blahblahblah
+sol = blahblahblah
+nadekoBOT = blahblahblah
+jannuBOT = blahblahblah
 
 #============== BOT EVENTS ================================
 @bot.event
@@ -61,7 +62,7 @@ async def help(ctx):
     embed.add_field(name='}bonk [@ someone]', value='Bonks that person', inline=False)
     embed.add_field(name='}riot', value='Time to RIOT!!', inline=False)
     embed.add_field(name='Other Features', value='Send 5 "a"s\nSend "cricket cricket"\nSend "raaid"', inline=False)
-    embed.add_field(name='Source Code', value='https://github.com/shironats/Buffbot/blob/Update-10/08/DiscordBot.py', inline=False)
+    embed.add_field(name='Source Code', value='https://github.com/shironats/Buffbot/blob/Update-22/08/DiscordBot.py', inline=False)
     await ctx.send(embed=embed)
 
 @bot.command()
@@ -137,6 +138,15 @@ async def riot(ctx):
     """Time to RIOT!!"""
     await sendSinglePic(ctx, 'https://i.imgur.com/fyG8NZk.png')
 
+@bot.command()
+async def bday(ctx):
+    """Birthdays"""
+    embed = discord.Embed(colour = discord.Colour.teal())
+    embed.set_author(name='BIRTHDAYS, PEOPLE, BIRTHDAYS')
+    for iCounter in range(len(birthdayNames)):
+        embed.add_field(name=birthdayNames[iCounter], value=birthdays[birthdayNames[iCounter]])
+    await ctx.send(embed=embed)
+
 #============== BOT LOOPS =============================
 @tasks.loop(seconds=2)
 async def downSpam(ctx):
@@ -169,7 +179,25 @@ bonkImages = ['https://i.imgur.com/h2di9EZ.gif',
               'https://i.imgur.com/yXhqh1d.gif',
               'https://i.imgur.com/fmZY9dV.gif',
               'https://i.imgur.com/VkYz0vr.gif',
-              'https://i.imgur.com/ngj9zmN.jpg']
+              'https://i.imgur.com/ngj9zmN.jpg',
+              'https://i.imgur.com/EZ56Cbz.jpg',
+              'https://i.imgur.com/HQFCiLI.jpg']
+
+birthdayNames = ['blahblahblah',
+                 'blahblahblah',
+                 'blahblahblah',
+                 'blahblahblah',
+                 'blahblahblah',
+                 'blahblahblah',
+                 'blahblahblah']
+
+birthdays = {birthdayNames[0]:'03 August',
+             birthdayNames[1]:'19 August',
+             birthdayNames[2]:'258 January',
+             birthdayNames[3]:'28 February',
+             birthdayNames[4]:'16 July',
+             birthdayNames[5]:'18 June',
+             birthdayNames[6]:'12 June'}
 
 #============== ASYNC FUNCTIONS =======================
 async def sendPics(ctx, imglink, withText, loopNum = 0):
@@ -191,4 +219,4 @@ async def sendSinglePic(ctx, imglink, embed = None):
             data = io.BytesIO(await resp.read())
             await ctx.send(file=discord.File(data, 'img%s'%(imglink[27:])), embed = embed)
 
-bot.run('ID Here')
+bot.run('blahblahblah')
