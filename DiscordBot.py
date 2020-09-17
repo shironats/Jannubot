@@ -45,6 +45,12 @@ async def on_message(message):
 #send jangkrik
     if message.content.lower().find('cricket cricket') != -1:
         await sendSinglePic(message.channel, 'https://i.imgur.com/ors2jnC.gif')
+
+#send RAID: SHADOW LEGENDS
+    if message.content.lower().find('ra') != -1:
+        if message.content.lower().find('ai') > message.content.lower().find('ra'):
+            if message.content.lower().find('id') > message.content.lower().find('ai'):
+                await sendSinglePic(message.channel, 'https://i.imgur.com/eywxw5g.gif')
     
     await bot.process_commands(message)
 
@@ -59,8 +65,8 @@ async def help(ctx):
     embed.add_field(name='}truck [@ someone]', value='Sends a truck after that person', inline=False)
     embed.add_field(name='}bonk [@ someone]', value='Bonks that person', inline=False)
     embed.add_field(name='}riot', value='Time to RIOT!!', inline=False)
-    embed.add_field(name='Other Features', value='Send 5 "a"s\nSend "cricket cricket"', inline=False)
-    embed.add_field(name='Source Code', value='https://github.com/shironats/Buffbot/blob/Update-29/07/DiscordBot.py', inline=False)
+    embed.add_field(name='Other Features', value='Send 5 "a"s\nSend "cricket cricket"\nSend "raid"', inline=False)
+    embed.add_field(name='Source Code', value='https://github.com/shironats/Buffbot/blob/Update-01/08/DiscordBot.py', inline=False)
     await ctx.send(embed=embed)
 
 @bot.command()
@@ -161,7 +167,8 @@ truckImages = ['https://i.imgur.com/qYhwU3x.gif',
 bonkImages = ['https://i.imgur.com/3e1P8oW.gif',
               'https://i.imgur.com/fIWm3Hh.gif',
               'https://i.imgur.com/fmZY9dV.gif',
-              'https://i.imgur.com/VkYz0vr.gif']
+              'https://i.imgur.com/VkYz0vr.gif',
+              'https://i.imgur.com/ngj9zmN.jpg']
 
 #============== ASYNC FUNCTIONS =======================
 async def sendPics(ctx, imglink, withText, loopNum = 0):
