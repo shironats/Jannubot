@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands, tasks
+import os
 import io
 import aiohttp
 import random
@@ -21,6 +22,7 @@ jannuBOT = blahblahblah
 async def on_ready():
     print('We have logged in as {0.user}'.format(bot))
     await bot.change_presence(activity=discord.Game(name='}help'))
+    getBirthdays()
 
 @bot.event
 async def on_message(message):
@@ -34,11 +36,11 @@ async def on_message(message):
             else:
                 downSpamBot.start(botfest)
 
-#send screaming cat image
+#send Screaming cat image
     if message.content.lower().endswith('aaaaa'):
         await sendSinglePic(message.channel, 'https://i.imgur.com/8n1zvzR.jpg')
 
-#send jangkrik
+#send Jangkrik
     if message.content.lower().find('cricket cricket') != -1:
         await sendSinglePic(message.channel, 'https://i.imgur.com/ors2jnC.gif')
 
@@ -47,6 +49,10 @@ async def on_message(message):
         if message.content.lower().find('aai') > message.content.lower().find('ra'):
             if message.content.lower().find('id') > message.content.lower().find('aai'):
                 await sendSinglePic(message.channel, 'https://i.imgur.com/eywxw5g.gif')
+
+#send Solaire
+    if message.content.lower().find('praise the sun') != -1:
+        await sendSinglePic(message.channel, 'https://i.imgur.com/MYhwSHm.gif')
     
     await bot.process_commands(message)
 
@@ -62,7 +68,7 @@ async def help(ctx):
     embed.add_field(name='}bonk [@ someone]', value='Bonks that person', inline=False)
     embed.add_field(name='}riot', value='Time to RIOT!!', inline=False)
     embed.add_field(name='Other Features', value='Send 5 "a"s\nSend "cricket cricket"\nSend "raaid"', inline=False)
-    embed.add_field(name='Source Code', value='https://github.com/shironats/Buffbot/blob/Update-22/08/DiscordBot.py', inline=False)
+    embed.add_field(name='Source Code', value='https://github.com/shironats/Buffbot/blob/Update-26/08/DiscordBot.py', inline=False)
     await ctx.send(embed=embed)
 
 @bot.command()
@@ -143,8 +149,8 @@ async def bday(ctx):
     """Birthdays"""
     embed = discord.Embed(colour = discord.Colour.teal())
     embed.set_author(name='BIRTHDAYS, PEOPLE, BIRTHDAYS')
-    for iCounter in range(len(birthdayNames)):
-        embed.add_field(name=birthdayNames[iCounter], value=birthdays[birthdayNames[iCounter]])
+    for iCounter in range(len(months)):
+        embed.add_field(name=months[iCounter], value=birthdays[months[iCounter]])
     await ctx.send(embed=embed)
 
 #============== BOT LOOPS =============================
@@ -183,21 +189,39 @@ bonkImages = ['https://i.imgur.com/h2di9EZ.gif',
               'https://i.imgur.com/EZ56Cbz.jpg',
               'https://i.imgur.com/HQFCiLI.jpg']
 
-birthdayNames = ['blahblahblah',
-                 'blahblahblah',
-                 'blahblahblah',
-                 'blahblahblah',
-                 'blahblahblah',
-                 'blahblahblah',
-                 'blahblahblah']
+months = ['January','February','March','April','May','June',
+          'July','August','September','October','November','December']
 
-birthdays = {birthdayNames[0]:'03 August',
-             birthdayNames[1]:'19 August',
-             birthdayNames[2]:'258 January',
-             birthdayNames[3]:'28 February',
-             birthdayNames[4]:'16 July',
-             birthdayNames[5]:'18 June',
-             birthdayNames[6]:'12 June'}
+birthdays = {months[0]:'None (yet)',
+             months[1]:'None (yet)',
+             months[2]:'None (yet)',
+             months[3]:'None (yet)',
+             months[4]:'None (yet)',
+             months[5]:'None (yet)',
+             months[6]:'None (yet)',
+             months[7]:'None (yet)',
+             months[8]:'None (yet)',
+             months[9]:'None (yet)',
+             months[10]:'None (yet)',
+             months[11]:'None (yet)'}
+
+#============== FUNCTIONS==============================
+def getBirthdays():
+    newLine = "\n"
+    currentMonth = ""
+    textfile = open(os.getcwd()+"/DiscordBot_source/JannupalsBirthdays.txt")
+    for line in textfile:
+        line = line.rstrip(newLine)
+        if line in months:
+            currentMonth = line
+        else:
+            if birthdays[currentMonth] == 'None (yet)':
+                birthdays[currentMonth] = line
+            else:
+                myString = birthdays[currentMonth]
+                myString = myString+newLine+line
+                birthdays[currentMonth] = myString
+    textfile.close()
 
 #============== ASYNC FUNCTIONS =======================
 async def sendPics(ctx, imglink, withText, loopNum = 0):
