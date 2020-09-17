@@ -10,22 +10,22 @@ bot = commands.Bot(command_prefix='}')
 bot.remove_command('help')
 
 #============== CHANNEL AND USER ID ==============
-botfest = nananana #botfest
-general = nananana #general
-danchou = '<@&nananana>'
-officers = '<@&nananana>'
-twinele = '<@&nananana>'
-haipa = nananana
-self = nananana
-sol = nananana
-nadekoBOT = nananana
-jannuBOT = nananana
-zeo = nananana
-mango = nananana
-nana = nananana
-bunny = nananana
-wayne = nananana
-yonji = nananana
+botfest = IDHere #botfest
+general = IDHere #general
+danchou = '<@&IDHere>'
+officers = '<@&IDHere>'
+twinele = '<@&IDHere>'
+haipa = IDHere
+self = IDHere
+sol = IDHere
+nadekoBOT = IDHere
+jannuBOT = IDHere
+zeo = IDHere
+mango = IDHere
+nana = IDHere
+bunny = IDHere
+wayne = IDHere
+yonji = IDHere
 
 #============== IMAGES & GLOBAL VARIABLE =========
 downImages = ['https://i.imgur.com/q4H83FZ.jpg',
@@ -41,7 +41,8 @@ upImages = ['https://i.imgur.com/ueO6Lrn.jpg',
 
 truckImages = ['https://i.imgur.com/XMG3BXZ.gif',
                'https://i.imgur.com/xYM56uZ.gif',
-               'https://i.imgur.com/oRMKp3k.gif']
+               'https://i.imgur.com/oRMKp3k.gif',
+               'https://i.imgur.com/9BJEJkS.gif']
 
 bonkImages = ['https://i.imgur.com/h2di9EZ.gif',
               'https://i.imgur.com/yXhqh1d.gif',
@@ -49,7 +50,9 @@ bonkImages = ['https://i.imgur.com/h2di9EZ.gif',
               'https://i.imgur.com/VkYz0vr.gif',
               'https://i.imgur.com/ngj9zmN.jpg',
               'https://i.imgur.com/EZ56Cbz.jpg',
-              'https://i.imgur.com/HQFCiLI.jpg']
+              'https://i.imgur.com/HQFCiLI.jpg',
+              'https://i.imgur.com/TELpsTl.jpg',
+              'https://i.imgur.com/SA4uMHJ.jpg']
 
 months = ['January','February','March','April','May','June','July',
           'August','September','October','November','December']
@@ -117,7 +120,7 @@ async def help(ctx, detail = "None"):
         embed.set_author(name='Help')
         embed.add_field(name='Commands', value="`down` `up` `checkImages` `truck` `bonk` `riot` `birthday` `TE`", inline=False)
         embed.add_field(name='Other Features', value='Send 5 "a"s\nSend "cricket cricket"\nSend "raaid"', inline=False)
-        embed.add_field(name='Source Code', value='https://github.com/shironats/Buffbot/blob/Update-01/09/DiscordBot.py', inline=False)
+        embed.add_field(name='Source Code', value='https://github.com/shironats/Buffbot/blob/Update-15/09/DiscordBot.py', inline=False)
     elif detail.lower() == 'down':
         embed = discord.Embed(colour = discord.Colour.teal(), description = 'Spams random "Buff is down" images')
         embed.set_author(name='}down')
@@ -195,8 +198,7 @@ async def isekai(ctx, member: discord.Member):
 async def truck(ctx, member: discord.Member):
     """Sends a truck over"""
     link = truckImages[random.randint(0,len(truckImages)-1)]
-    embed = discord.Embed(colour = discord.Colour.teal())
-    embed.set_footer(text='{0.display_name}, {1.display_name} sends their regards.'.format(member, ctx.message.author))
+    embed = discord.Embed(colour = discord.Colour.teal(), description = '{0.mention}, {1.mention} sends their regards.'.format(member, ctx.message.author))
     embed.set_image(url='attachment://img%s' %(link[27:]))
     await sendSinglePic(ctx, link, embed)
 
@@ -204,11 +206,10 @@ async def truck(ctx, member: discord.Member):
 async def bonk(ctx, member: discord.Member):
     """Bonks a member"""
     link = bonkImages[random.randint(0,len(bonkImages)-1)]
-    embed = discord.Embed(colour = discord.Colour.teal())
     if (member == bot.get_user(self)):
-        embed.set_footer(text='{0.display_name} has been BONKED by {1.display_name} for being bad.'.format(ctx.message.author, member))
+        embed = discord.Embed(colour = discord.Colour.teal(), description = "{0.mention} has been BONKED by {1.mention} for being bad.".format(ctx.message.author, member))
     else:
-        embed.set_footer(text='{0.display_name} has been BONKED by {1.display_name} for being bad.'.format(member, ctx.message.author))
+        embed = discord.Embed(colour = discord.Colour.teal(), description = "{0.mention} has been BONKED by {1.mention} for being bad.".format(member, ctx.message.author))
     embed.set_image(url='attachment://img%s' %(link[27:]))
     await sendSinglePic(ctx, link, embed)
 
@@ -220,24 +221,29 @@ async def riot(ctx):
 @bot.command()
 async def bday(ctx):
     """Birthdays"""
-    embed = discord.Embed(colour = discord.Colour.teal())
-    embed.set_author(name='BIRTHDAYS, PEOPLE, BIRTHDAYS')
-    for iCounter in range(len(months)):
-        embed.add_field(name=months[iCounter], value=birthdays[months[iCounter]])
-    await ctx.send(embed=embed)
+    if(ctx.guild.id == jannupals):
+        embed = discord.Embed(colour = discord.Colour.teal())
+        embed.set_author(name='BIRTHDAYS, PEOPLE, BIRTHDAYS')
+        for iCounter in range(len(months)):
+            embed.add_field(name=months[iCounter], value=birthdays[months[iCounter]])
+        await ctx.send(embed=embed)
+    else:
+        await ctx.send("Sorry, permission denied")
 
 @bot.command()
 async def birthday(ctx, date: int, month: int):
     """Set Birthday"""
-    #make it so non-jannupals discord cannot enter
-    addBirthdays(ctx, date, month)
-    getBirthdays()
-    await ctx.send("Your birthday has been added to DA's database")
+    if(ctx.guild.id == IDHere):
+        addBirthdays(ctx, date, month)
+        getBirthdays()
+        await ctx.send("Your birthday has been added to DA's database")
+    else:
+        await ctx.send("Sorry, permission denied")
 
 @bot.command()
 async def TE(ctx, raidcode: str):
     """Call TE Peeps"""
-    await ctx.send("%s %s %s %s %s %s %s %s %s" %(twinele,raidcode,bot.get_user(zeo).mention,bot.get_user(mango).mention,bot.get_user(nana).mention,bot.get_user(bunny).mention,bot.get_user(wayne).mention,bot.get_user(yonji).mention,bot.get_user(self).mention))
+    await ctx.send("%s %s %s %s %s %s %s %s" %(twinele,raidcode,bot.get_user(zeo).mention,bot.get_user(nana).mention,bot.get_user(bunny).mention,bot.get_user(wayne).mention,bot.get_user(yonji).mention,bot.get_user(self).mention))
 
 #============== BOT LOOPS =============================
 @tasks.loop(seconds=2)
@@ -310,4 +316,4 @@ async def sendSinglePic(ctx, imglink, embed = None):
             data = io.BytesIO(await resp.read())
             await ctx.send(file=discord.File(data, 'img%s'%(imglink[27:])), embed = embed)
 
-bot.run('nananana')
+bot.run('IDHere')
