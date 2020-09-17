@@ -9,23 +9,32 @@ from pathlib import Path
 bot = commands.Bot(command_prefix='}')
 bot.remove_command('help')
 
-#============== CHANNEL AND USER ID ==============
-botfest = IDHere #botfest
-general = IDHere #general
-danchou = '<@&IDHere>'
-officers = '<@&IDHere>'
-twinele = '<@&IDHere>'
-haipa = IDHere
-self = IDHere
-sol = IDHere
-nadekoBOT = IDHere
-jannuBOT = IDHere
-zeo = IDHere
-mango = IDHere
-nana = IDHere
-bunny = IDHere
-wayne = IDHere
-yonji = IDHere
+#============== SENSITIVE NUMBERS ==============
+miscID = {"jannupals"   : IDHere, #server
+          "botfest"     : IDHere, #channel
+          "general"     : IDHere} #channel
+
+roles = {"danchou"      : '<@&IDHere>',
+         "officers"     : '<@&IDHere>',
+         "twinele"      : '<@&IDHere>'}
+
+userID = {"haipa"       : IDHere,
+          "self"        : IDHere,
+          "sol"         : IDHere,
+          "nadekoBOT"   : IDHere,
+          "jannuBOT"    : IDHere,
+          "zeo"         : IDHere,
+          "mango"       : IDHere,
+          "nana"        : IDHere,
+          "bunny"       : IDHere,
+          "wayne"       : IDHere,
+          "yonji"       : IDHere,
+          "joe"         : IDHere,
+          "chinpo"      : IDHere}
+
+nukeCode = {"user"      : userID,
+            "role"      : roles,
+            "misc"      : miscID}
 
 #============== IMAGES & GLOBAL VARIABLE =========
 downImages = ['https://i.imgur.com/q4H83FZ.jpg',
@@ -82,15 +91,15 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
-    nadeko = bot.get_user(nadekoBOT)
+    nadeko = bot.get_user(nukeCode["user"]["nadekoBOT"])
     if message.author == bot.user:
         return
     elif message.author == nadeko:
         if message.content.startswith('}down'):
             if message.content.endswith('general'):
-                downSpamBot.start(general)
+                downSpamBot.start(nukeCode["misc"]["general"])
             else:
-                downSpamBot.start(botfest)
+                downSpamBot.start(nukeCode["misc"]["botfest"])
 
 #send Screaming cat image
     if message.content.lower().endswith('aaaaa'):
@@ -109,7 +118,11 @@ async def on_message(message):
 #send Solaire
     if message.content.lower().find('praise the sun') != -1:
         await sendSinglePic(message.channel, 'https://i.imgur.com/MYhwSHm.gif')
-    
+
+#counters Uwaaru
+    if message.content.find('<:uwaaru:755820728175034489>') != -1:
+        await sendSinglePic(message.channel, 'https://i.imgur.com/GWiQcKX.jpg')
+
     await bot.process_commands(message)
 
 #============== BOT COMMANDS ==============================
@@ -120,7 +133,7 @@ async def help(ctx, detail = "None"):
         embed.set_author(name='Help')
         embed.add_field(name='Commands', value="`down` `up` `checkImages` `truck` `bonk` `riot` `birthday` `TE`", inline=False)
         embed.add_field(name='Other Features', value='Send 5 "a"s\nSend "cricket cricket"\nSend "raaid"', inline=False)
-        embed.add_field(name='Source Code', value='https://github.com/shironats/Buffbot/blob/Update-15/09/DiscordBot.py', inline=False)
+        embed.add_field(name='Source Code', value='https://github.com/shironats/Jannubot/blob/V2.00_17/09/DiscordBot.py', inline=False)
     elif detail.lower() == 'down':
         embed = discord.Embed(colour = discord.Colour.teal(), description = 'Spams random "Buff is down" images')
         embed.set_author(name='}down')
@@ -205,8 +218,11 @@ async def truck(ctx, member: discord.Member):
 @bot.command()
 async def bonk(ctx, member: discord.Member):
     """Bonks a member"""
-    link = bonkImages[random.randint(0,len(bonkImages)-1)]
-    if (member == bot.get_user(self)):
+    if ((member == bot.get_user(nukeCode["user"]["joe"])) or (member == bot.get_user(nukeCode["user"]["chinpo"]))):
+        link = 'https://i.imgur.com/ZvUC0Eq.jpg'
+    else:
+        link = bonkImages[random.randint(0,len(bonkImages)-1)]
+    if (member == bot.get_user(nukeCode["user"]["self"])):
         embed = discord.Embed(colour = discord.Colour.teal(), description = "{0.mention} has been BONKED by {1.mention} for being bad.".format(ctx.message.author, member))
     else:
         embed = discord.Embed(colour = discord.Colour.teal(), description = "{0.mention} has been BONKED by {1.mention} for being bad.".format(member, ctx.message.author))
@@ -221,7 +237,7 @@ async def riot(ctx):
 @bot.command()
 async def bday(ctx):
     """Birthdays"""
-    if(ctx.guild.id == jannupals):
+    if(ctx.guild.id == nukeCode["misc"]["jannupals"]):
         embed = discord.Embed(colour = discord.Colour.teal())
         embed.set_author(name='BIRTHDAYS, PEOPLE, BIRTHDAYS')
         for iCounter in range(len(months)):
@@ -233,7 +249,7 @@ async def bday(ctx):
 @bot.command()
 async def birthday(ctx, date: int, month: int):
     """Set Birthday"""
-    if(ctx.guild.id == IDHere):
+    if(ctx.guild.id == nukeCode["misc"]["jannupals"]):
         addBirthdays(ctx, date, month)
         getBirthdays()
         await ctx.send("Your birthday has been added to DA's database")
@@ -243,7 +259,17 @@ async def birthday(ctx, date: int, month: int):
 @bot.command()
 async def TE(ctx, raidcode: str):
     """Call TE Peeps"""
-    await ctx.send("%s %s %s %s %s %s %s %s" %(twinele,raidcode,bot.get_user(zeo).mention,bot.get_user(nana).mention,bot.get_user(bunny).mention,bot.get_user(wayne).mention,bot.get_user(yonji).mention,bot.get_user(self).mention))
+    if(ctx.guild.id == nukeCode["misc"]["jannupals"]):
+        await ctx.send("%s %s %s %s %s %s %s %s" %(nukeCode["role"]["twinele"],
+                                                   raidcode,
+                                                   bot.get_user(nukeCode["user"]["zeo"]).mention,
+                                                   bot.get_user(nukeCode["user"]["nana"]).mention,
+                                                   bot.get_user(nukeCode["user"]["bunny"]).mention,
+                                                   bot.get_user(nukeCode["user"]["wayne"]).mention,
+                                                   bot.get_user(nukeCode["user"]["yonji"]).mention,
+                                                   bot.get_user(nukeCode["user"]["self"]).mention))
+    else:
+        await ctx.send("Sorry, permission denied")
 
 #============== BOT LOOPS =============================
 @tasks.loop(seconds=2)
@@ -304,7 +330,7 @@ async def sendPics(ctx, imglink, withText, loopNum = 0):
                 return await ctx.send('Could not download file...')
             data = io.BytesIO(await resp.read())
             if withText == True:
-                await ctx.send('%s or %s, Please reactivate crew buffs, this is reminder number %i' %(danchou,officers,loopNum), file=discord.File(data, 'img%s'%(imglink[27:])))
+                await ctx.send('%s or %s, Please reactivate crew buffs, this is reminder number %i' %(nukeCode["role"]["danchou"],nukeCode["role"]["officers"],loopNum), file=discord.File(data, 'img%s'%(imglink[27:])))
             else:
                 await ctx.send(file=discord.File(data, 'img%s'%(imglink[27:])))
 
