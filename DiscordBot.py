@@ -16,13 +16,15 @@ miscID = {"jannupals"   : IDHere, #server
 
 roles = {"danchou"      : '<@&IDHere>',
          "officers"     : '<@&IDHere>',
-         "twinele"      : '<@&IDHere>'}
+         "twinele"      : '<@&IDHere>',
+         "europa"       : '<@&IDHere>'}
 
 userID = {"haipa"       : IDHere,
           "self"        : IDHere,
           "sol"         : IDHere,
           "nadekoBOT"   : IDHere,
           "jannuBOT"    : IDHere,
+          "europaBOT"   : IDHere,
           "zeo"         : IDHere,
           "mango"       : IDHere,
           "nana"        : IDHere,
@@ -92,6 +94,7 @@ async def on_ready():
 @bot.event
 async def on_message(message):
     nadeko = bot.get_user(nukeCode["user"]["nadekoBOT"])
+
     if message.author == bot.user:
         return
     elif message.author == nadeko:
@@ -123,6 +126,12 @@ async def on_message(message):
     if message.content.find('<:uwaaru:755820728175034489>') != -1:
         await sendSinglePic(message.channel, 'https://i.imgur.com/GWiQcKX.jpg')
 
+    if len(message.mentions) > 0:
+        if bot.get_user(nukeCode["user"]["europaBOT"]) in message.mentions:
+            raidCode = message.content.split(" ")
+            await message.delete()
+            await message.channel.send("%s %s"%(nukeCode["role"]["europa"], raidCode[-1]))
+
     await bot.process_commands(message)
 
 #============== BOT COMMANDS ==============================
@@ -133,7 +142,7 @@ async def help(ctx, detail = "None"):
         embed.set_author(name='Help')
         embed.add_field(name='Commands', value="`down` `up` `checkImages` `truck` `bonk` `riot` `birthday` `TE`", inline=False)
         embed.add_field(name='Other Features', value='Send 5 "a"s\nSend "cricket cricket"\nSend "raaid"', inline=False)
-        embed.add_field(name='Source Code', value='https://github.com/shironats/Jannubot/blob/V2.10_19/09/DiscordBot.py', inline=False)
+        embed.add_field(name='Source Code', value='https://github.com/shironats/Jannubot/blob/V2.20_21/09/DiscordBot.py', inline=False)
     elif detail.lower() == 'down':
         embed = discord.Embed(colour = discord.Colour.teal(), description = 'Spams random "Buff is down" images')
         embed.set_author(name='}down')
