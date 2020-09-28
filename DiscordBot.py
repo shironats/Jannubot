@@ -149,7 +149,7 @@ async def help(ctx, detail = "None"):
     if detail.lower() == "none":
         embed = discord.Embed(colour = discord.Colour.teal(), description = "Type `}help [command]` for more help.\tE.g. `}help down`")
         embed.set_author(name='Help')
-        embed.add_field(name='Commands', value="`down` `up` `checkImages` `truck` `bonk` `evade` `riot` `birthday` `TE` `queue` `next`", inline=False)
+        embed.add_field(name='Commands', value="`down` `up` `checkImages` `truck` `bonk` `evade` `riot` `birthday` `TE` `queue` `next` `clearQueue`", inline=False)
         embed.add_field(name='Other Features', value='Send 5 "a"s\nSend "cricket cricket"\nSend "raaid"\nSend "Praise the sun"', inline=False)
         embed.add_field(name='Source Code', value='https://github.com/shironats/Jannubot/blob/V2.40_28/09/DiscordBot.py', inline=False)
     else:
@@ -180,7 +180,7 @@ async def help(ctx, detail = "None"):
         elif (detail.lower() == 'next') or (detail.lower() == 'n'):
             embed.add_field(name='}next', value='Moves the raid host queue')
             embed.add_field(name='Aliases', value='`}n`', inline=False)
-        elif (detail.lower() == 'clear') or (detail.lower() == 'c') or (detail.lower() == 'r'):
+        elif (detail.lower() == 'clearqueue') or (detail.lower() == 'c') or (detail.lower() == 'r'):
             embed.add_field(name='}clearQueue', value='Clears the raid host queue')
             embed.add_field(name='Aliases', value='`}c` `}r`', inline=False)
         else:
