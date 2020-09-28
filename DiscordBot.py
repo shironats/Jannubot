@@ -86,15 +86,17 @@ birthdays = {months[0]:'None (yet)',
              months[10]:'None (yet)',
              months[11]:'None (yet)'}
 
+raidQueue = []
+
 data_folder = Path("DiscordBot_source/")
 newLine = "\n"
 
 #============== BOT EVENTS ================================
 @bot.event
 async def on_ready():
+    getBirthdays()
     print('We have logged in as {0.user}'.format(bot))
     await bot.change_presence(activity=discord.Game(name='}help'))
-    getBirthdays()
 
 @bot.event
 async def on_message(message):
@@ -111,26 +113,26 @@ async def on_message(message):
 
 #send Screaming cat image
     if message.content.lower().endswith('aaaaa'):
-        await sendSinglePic(message.channel, 'https://i.imgur.com/8n1zvzR.jpg')
+        await message.channel.send('https://i.imgur.com/8n1zvzR.jpg')
 #send Jangkrik
     if message.content.lower().endswith('cricket cricket') and message.content.lower().startswith('cricket cricket'):
-        await sendSinglePic(message.channel, 'https://i.imgur.com/ors2jnC.gif')
+        await message.channel.send('https://tenor.com/wjNW.gif')
 
 #send Mango memorial
-    if message.content.lower().find('mango') != -1:
-        await sendSinglePic(message.channel, 'https://i.imgur.com/EmrHMS7.jpg')
+    if message.content.lower().find(' mango ') != -1:
+        await message.channel.send('https://i.imgur.com/EmrHMS7.jpg')
 #send RAID: SHADOW LEGENDS
     elif message.content.lower().find('ra') != -1:
         if message.content.lower().find('aai') > message.content.lower().find('ra'):
             if message.content.lower().find('id') > message.content.lower().find('aai'):
-                await sendSinglePic(message.channel, 'https://i.imgur.com/eywxw5g.gif')
+                await message.channel.send('https://i.imgur.com/eywxw5g.gif')
 #send Solaire
     elif message.content.lower().find('praise the sun') != -1:
-        await sendSinglePic(message.channel, 'https://i.imgur.com/MYhwSHm.gif')
+        await message.channel.send('https://i.imgur.com/MYhwSHm.gif')
 
 #counters Uwaaru
     if message.content.find('<:uwaaru:755820728175034489>') != -1:
-        await sendSinglePic(message.channel, 'https://i.imgur.com/GWiQcKX.jpg')
+        await message.channel.send('https://i.imgur.com/GWiQcKX.jpg')
 
 #fixes accidental Europa bot mentions
     if len(message.mentions) > 0:
@@ -147,36 +149,39 @@ async def help(ctx, detail = "None"):
     if detail.lower() == "none":
         embed = discord.Embed(colour = discord.Colour.teal(), description = "Type `}help [command]` for more help.\tE.g. `}help down`")
         embed.set_author(name='Help')
-        embed.add_field(name='Commands', value="`down` `up` `checkImages` `truck` `bonk` `evade` `riot` `birthday` `TE`", inline=False)
-        embed.add_field(name='Other Features', value='Send 5 "a"s\nSend "cricket cricket"\nSend "raaid"', inline=False)
-        embed.add_field(name='Source Code', value='https://github.com/shironats/Jannubot/blob/V2.30_24/09/DiscordBot.py', inline=False)
-    elif detail.lower() == 'down':
-        embed = discord.Embed(colour = discord.Colour.teal(), description = 'Spams random "Buff is down" images')
-        embed.set_author(name='}down')
-    elif detail.lower() == 'up':
-        embed = discord.Embed(colour = discord.Colour.teal(), description = 'Spams random "Buff is up" image')
-        embed.set_author(name='}up')
-    elif detail.lower() == 'checkimages':
-        embed = discord.Embed(colour = discord.Colour.teal(), description = 'Check all images')
-        embed.set_author(name='}checkImages')
-    elif detail.lower() == 'truck':
-        embed = discord.Embed(colour = discord.Colour.teal(), description = 'Sends a truck after that person')
-        embed.set_author(name='}truck [@ someone]')
-    elif detail.lower() == 'bonk':
-        embed = discord.Embed(colour = discord.Colour.teal(), description = 'Bonks that person')
-        embed.set_author(name='}bonk [@ someone] "reason for bonk (optional)"')
-    elif detail.lower() == 'evade':
-        embed = discord.Embed(colour = discord.Colour.teal(), description = 'Rolls for bonk evasion')
-        embed.set_author(name='}evade')
-    elif detail.lower() == 'riot':
-        embed = discord.Embed(colour = discord.Colour.teal(), description = 'Time to RIOT!!')
-        embed.set_author(name='}riot')
-    elif detail.lower() == 'birthday':
-        embed = discord.Embed(colour = discord.Colour.teal(), description = 'Sends your birthday to my txt file')
-        embed.set_author(name='}birthday [date] [month]')
-    elif detail.lower() == 'te':
-        embed = discord.Embed(colour = discord.Colour.teal(), description = 'Calls people subscribed to DA TE Services')
-        embed.set_author(name='}TE [code]')
+        embed.add_field(name='Commands', value="`down` `up` `checkImages` `truck` `bonk` `evade` `riot` `birthday` `TE` `queue` `next`", inline=False)
+        embed.add_field(name='Other Features', value='Send 5 "a"s\nSend "cricket cricket"\nSend "raaid"\nSend "Praise the sun"', inline=False)
+        embed.add_field(name='Source Code', value='https://github.com/shironats/Jannubot/blob/V2.40_28/09/DiscordBot.py', inline=False)
+    else:
+        embed = discord.Embed(colour = discord.Colour.teal())
+        if detail.lower() == 'down':
+            embed.add_field(name='}down', value='Spams random "Buff is down" images')
+        elif detail.lower() == 'up':
+            embed.add_field(name='}up', value='Sends a random "Buff is up" image')
+        elif detail.lower() == 'checkimages':
+            embed.add_field(name='}checkImages', value='Check all images')
+        elif detail.lower() == 'truck':
+            embed.add_field(name='}truck [@ someone]', value='Sends a truck after that person')
+            embed.add_field(name='Aliases', value='`}isekai`', inline=False)
+        elif detail.lower() == 'bonk':
+            embed.add_field(name='}bonk [@ someone] "reason for bonk [optional]"', value='Bonks that person')
+        elif detail.lower() == 'evade':
+            embed.add_field(name='}evade', value='Rolls for bonk evasion')
+        elif detail.lower() == 'riot':
+            embed.add_field(name='}riot', value='Time to RIOT!!!')
+        elif detail.lower() == 'birthday':
+            embed.add_field(name='}birthday [date] [month]', value='Sends your birthday to my txt file')
+        elif detail.lower() == 'te':
+            embed.add_field(name='}TE [code]', value='Calls people subscribed to DA TE Services')
+        elif (detail.lower() == 'queue') or (detail.lower() == 'q'):
+            embed.add_field(name='}queue', value='Check raid host queue')
+            embed.add_field(name='}queue [raid name]', value='Add to raid host queue', inline=False)
+            embed.add_field(name='Aliases', value='`}q`')
+        elif (detail.lower() == 'next') or (detail.lower() == 'n'):
+            embed.add_field(name='}next', value='Moves the raid host queue')
+            embed.add_field(name='Aliases', value='`}n`', inline=False)
+        else:
+            embed.add_field(name='No such command', value='Please check }help')
     await ctx.send(embed=embed)
 
 @bot.command()
@@ -220,11 +225,6 @@ async def checkImages(ctx):
     for iCounter in range(len(bonkImages)):
         link = bonkImages[iCounter]
         await sendSinglePic(ctx, link)
-
-@bot.command()
-async def isekai(ctx, member: discord.Member):
-    """Same as }truck"""
-    await truck(ctx, member)
  
 @bot.command()
 async def truck(ctx, member: discord.Member):
@@ -251,7 +251,7 @@ async def bonk(ctx, member: discord.Member, reason = "being bad"):
 @bot.command()
 async def evade(ctx):
     """Roll for evasion"""
-    if(random.randint(0,20) > 18):
+    if(random.randint(1,20) > 18):
         link = evadeImages[random.randint(0,len(evadeImages)-1)]
         embed = discord.Embed(colour = discord.Colour.teal(), description = "{0.mention} evades the bonk.".format(ctx.message.author))
     else:
@@ -302,9 +302,66 @@ async def TE(ctx, raidcode: str):
     else:
         await ctx.send("Sorry, permission denied")
 
+@bot.command()
+async def queue(ctx, raidName: str = "None"):
+    """Add raid to queue"""
+    if(ctx.guild.id == nukeCode["misc"]["jannupals"]):
+        if(raidName != "None"):
+            raidQueue.append("%s by %s" %(raidName, ctx.message.author.mention))
+            embed = discord.Embed(colour = discord.Colour.teal(), description = "Queued %s [%s]" %(raidName, ctx.message.author.mention))
+            await ctx.send(embed=embed)
+        else:
+            if(len(raidQueue) == 0):
+                await ctx.send("```The queue is empty y'all```")
+            else:
+                qString = "```"
+                for x in range(len(raidQueue)):
+                    qUser = bot.get_guild(nukeCode["misc"]["jannupals"]).get_member(int(raidQueue[x][raidQueue[x].find("!")+1:-1])).display_name
+                    qString = qString + str(x+1) + ") " + raidQueue[x][:raidQueue[x].find("<@!")] + qUser + newLine
+                qString += "```"
+                await ctx.send(qString)
+    else:
+        await ctx.send("Sorry, permission denied")
+
+@bot.command()
+async def next(ctx):
+    """Next raid up"""
+    if(ctx.guild.id == nukeCode["misc"]["jannupals"]):
+        if(len(raidQueue) == 0):
+            embed = discord.Embed(colour = discord.Colour.teal())
+            embed.add_field(name = "Queue is empty", value = "Please fill with }queue")
+        else:
+            embed = discord.Embed(colour = discord.Colour.teal())
+            embed.add_field(name = "Next Up", value = "%s" %(raidQueue[0]))
+            del raidQueue[0]
+        await ctx.send(embed=embed)
+    else:
+        await ctx.send("Sorry, permission denied")
+
 #@bot.command()
 #async def asd(ctx, emot: discord.Emoji):
 #    await ctx.send("%i"%(emot.id))
+
+#============== ALT COMMANDS ==========================
+@bot.command(pass_context = True)
+async def h(ctx, detail = "None"):
+    """Same as }help"""
+    await help(ctx, detail)
+
+@bot.command()
+async def isekai(ctx, member: discord.Member):
+    """Same as }truck"""
+    await truck(ctx, member)
+
+@bot.command()
+async def q(ctx, raidName: str = "None"):
+    """Same as }queue"""
+    await queue(ctx, raidName)
+
+@bot.command()
+async def n(ctx):
+    """Same as }next"""
+    await next(ctx)
 
 #============== BOT LOOPS =============================
 @tasks.loop(seconds=10)
