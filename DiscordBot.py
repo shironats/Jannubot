@@ -149,42 +149,54 @@ async def help(ctx, detail = "None"):
     if detail.lower() == "none":
         embed = discord.Embed(colour = discord.Colour.teal(), description = "Type `}help [command]` for more help.\tE.g. `}help down`")
         embed.set_author(name='Help')
-        embed.add_field(name='Commands', value="`down` `up` `checkImages` `truck` `bonk` `evade` `riot` `birthday` `TE` `queue` `next` `clearQueue`", inline=False)
+        embed.add_field(name='Commands', value="`down` `up` `checkImages` `truck` `bonk` `evade` `riot` `birthday` `TE` `queue` `next` `clearqueue`", inline=False)
         embed.add_field(name='Other Features', value='Send 5 "a"s\nSend "cricket cricket"\nSend "raaid"\nSend "Praise the sun"', inline=False)
         embed.add_field(name='Source Code', value='https://github.com/shironats/Jannubot/blob/V2.40_28/09/DiscordBot.py', inline=False)
     else:
-        embed = discord.Embed(colour = discord.Colour.teal())
         if detail.lower() == 'down':
-            embed.add_field(name='}down', value='Spams random "Buff is down" images')
+            embed = discord.Embed(colour = discord.Colour.teal(), description = 'Spams random "Buff is down" images')
+            embed.set_author(name='}down')
         elif detail.lower() == 'up':
-            embed.add_field(name='}up', value='Sends a random "Buff is up" image')
+            embed = discord.Embed(colour = discord.Colour.teal(), description = 'Sends a random "Buff is up" image')
+            embed.set_author(name='}up')
         elif detail.lower() == 'checkimages':
-            embed.add_field(name='}checkImages', value='Check all images')
-        elif detail.lower() == 'truck':
-            embed.add_field(name='}truck [@ someone]', value='Sends a truck after that person')
+            embed = discord.Embed(colour = discord.Colour.teal(), description = 'Check all images')
+            embed.set_author(name='}checkImages')
+        elif (detail.lower() == 'truck') or (detail.lower() == 'isekai'):
+            embed = discord.Embed(colour = discord.Colour.teal(), description = 'Sends a truck after that person')
+            embed.set_author(name='}truck [@ someone]')
             embed.add_field(name='Aliases', value='`}isekai`', inline=False)
         elif detail.lower() == 'bonk':
-            embed.add_field(name='}bonk [@ someone] "reason for bonk [optional]"', value='Bonks that person')
+            embed = discord.Embed(colour = discord.Colour.teal(), description = 'Bonks that person')
+            embed.set_author(name='}bonk [@ someone] "reason for bonk [optional]"')
         elif detail.lower() == 'evade':
-            embed.add_field(name='}evade', value='Rolls for bonk evasion')
+            embed = discord.Embed(colour = discord.Colour.teal(), description = 'Rolls for bonk evasion')
+            embed.set_author(name='}evade')
         elif detail.lower() == 'riot':
-            embed.add_field(name='}riot', value='Time to RIOT!!!')
+            embed = discord.Embed(colour = discord.Colour.teal(), description = 'Time to RIOT!!!')
+            embed.set_author(name='}riot')
         elif detail.lower() == 'birthday':
-            embed.add_field(name='}birthday [date] [month]', value='Sends your birthday to my txt file')
+            embed = discord.Embed(colour = discord.Colour.teal(), description = 'Sends your birthday to my txt file')
+            embed.set_author(name='}birthday [date] [month]')
         elif detail.lower() == 'te':
-            embed.add_field(name='}TE [code]', value='Calls people subscribed to DA TE Services')
+            embed = discord.Embed(colour = discord.Colour.teal(), description = 'Calls people subscribed to DA TE Services')
+            embed.set_author(name='}TE [code]')
         elif (detail.lower() == 'queue') or (detail.lower() == 'q'):
-            embed.add_field(name='}queue', value='Check raid host queue')
+            embed = discord.Embed(colour = discord.Colour.teal(), description = 'Check raid host queue')
+            embed.set_author(name='}queue')
             embed.add_field(name='}queue [raid name]', value='Add to raid host queue', inline=False)
             embed.add_field(name='Aliases', value='`}q`')
         elif (detail.lower() == 'next') or (detail.lower() == 'n'):
-            embed.add_field(name='}next', value='Moves the raid host queue')
+            embed = discord.Embed(colour = discord.Colour.teal(), description = 'Moves the raid host queue')
+            embed.set_author(name='}next')
             embed.add_field(name='Aliases', value='`}n`', inline=False)
         elif (detail.lower() == 'clearqueue') or (detail.lower() == 'c') or (detail.lower() == 'r'):
-            embed.add_field(name='}clearQueue', value='Clears the raid host queue')
+            embed = discord.Embed(colour = discord.Colour.teal(), description = 'Clears the raid host queue')
+            embed.set_author(name='}clearqueue')
             embed.add_field(name='Aliases', value='`}c` `}r`', inline=False)
         else:
-            embed.add_field(name='No such command', value='Please check }help')
+            embed = discord.Embed(colour = discord.Colour.teal(), description = 'Please check }help')
+            embed.set_author(name='No such command')
     await ctx.send(embed=embed)
 
 @bot.command()
@@ -331,18 +343,18 @@ async def next(ctx):
     """Next raid up"""
     if(ctx.guild.id == nukeCode["misc"]["jannupals"]):
         if(len(raidQueue) == 0):
-            embed = discord.Embed(colour = discord.Colour.teal())
-            embed.add_field(name = "Queue is empty", value = "Please fill with }queue")
+            embed = discord.Embed(colour = discord.Colour.teal(), description = "Please fill with }queue")
+            embed.set_author(name = "Queue is empty")
         else:
-            embed = discord.Embed(colour = discord.Colour.teal())
-            embed.add_field(name = "Next Up", value = "%s" %(raidQueue[0]))
+            embed = discord.Embed(colour = discord.Colour.teal(), description = "%s" %(raidQueue[0]))
+            embed.set_author(name="Next Up")
             del raidQueue[0]
         await ctx.send(embed=embed)
     else:
         await ctx.send("Sorry, permission denied.")
 
 @bot.command()
-async def clearQueue(ctx):
+async def clearqueue(ctx):
     """Clears raid queue"""
     if(ctx.guild.id == nukeCode["misc"]["jannupals"]):
         raidQueue.clear()
@@ -377,13 +389,13 @@ async def n(ctx):
 
 @bot.command()
 async def c(ctx):
-    """Same as }clearQueue"""
-    await clearQueue(ctx)
+    """Same as }clearqueue"""
+    await clearqueue(ctx)
 
 @bot.command()
 async def r(ctx):
-    """Same as }clearQueue"""
-    await clearQueue(ctx)
+    """Same as }clearqueue"""
+    await clearqueue(ctx)
 
 #============== BOT LOOPS =============================
 @tasks.loop(seconds=10)
