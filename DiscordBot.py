@@ -6,7 +6,7 @@ import aiohttp
 import random
 from pathlib import Path
 
-bot = commands.Bot(command_prefix='}')
+bot = commands.Bot(command_prefix='}', activity=discord.Game(name='}help'))
 bot.remove_command('help')
 
 #============== SENSITIVE NUMBERS ==============
@@ -96,7 +96,7 @@ newLine = "\n"
 async def on_ready():
     getBirthdays()
     print('We have logged in as {0.user}'.format(bot))
-    await bot.change_presence(activity=discord.Game(name='}help'))
+#    await bot.change_presence(activity=discord.Game(name='}help'))
 
 @bot.event
 async def on_message(message):
@@ -180,6 +180,9 @@ async def help(ctx, detail = "None"):
         elif (detail.lower() == 'next') or (detail.lower() == 'n'):
             embed.add_field(name='}next', value='Moves the raid host queue')
             embed.add_field(name='Aliases', value='`}n`', inline=False)
+        elif (detail.lower() == 'clear') or (detail.lower() == 'c') or (detail.lower() == 'r'):
+            embed.add_field(name='}clearQueue', value='Clears the raid host queue')
+            embed.add_field(name='Aliases', value='`}c` `}r`', inline=False)
         else:
             embed.add_field(name='No such command', value='Please check }help')
     await ctx.send(embed=embed)
@@ -275,7 +278,7 @@ async def bday(ctx):
             embed.add_field(name=months[iCounter], value=birthdays[months[iCounter]])
         await ctx.send(embed=embed)
     else:
-        await ctx.send("Sorry, permission denied")
+        await ctx.send("Sorry, permission denied.")
 
 @bot.command()
 async def birthday(ctx, date: int, month: int):
@@ -285,7 +288,7 @@ async def birthday(ctx, date: int, month: int):
         getBirthdays()
         await ctx.send("Your birthday has been added to DA's database")
     else:
-        await ctx.send("Sorry, permission denied")
+        await ctx.send("Sorry, permission denied.")
 
 @bot.command()
 async def TE(ctx, raidcode: str):
@@ -300,7 +303,7 @@ async def TE(ctx, raidcode: str):
                                                    bot.get_user(nukeCode["user"]["yonji"]).mention,
                                                    bot.get_user(nukeCode["user"]["self"]).mention))
     else:
-        await ctx.send("Sorry, permission denied")
+        await ctx.send("Sorry, permission denied.")
 
 @bot.command()
 async def queue(ctx, raidName: str = "None"):
@@ -321,7 +324,7 @@ async def queue(ctx, raidName: str = "None"):
                 qString += "```"
                 await ctx.send(qString)
     else:
-        await ctx.send("Sorry, permission denied")
+        await ctx.send("Sorry, permission denied.")
 
 @bot.command()
 async def next(ctx):
@@ -336,7 +339,16 @@ async def next(ctx):
             del raidQueue[0]
         await ctx.send(embed=embed)
     else:
-        await ctx.send("Sorry, permission denied")
+        await ctx.send("Sorry, permission denied.")
+
+@bot.command()
+async def clearQueue(ctx):
+    """Clears raid queue"""
+    if(ctx.guild.id == nukeCode["misc"]["jannupals"]):
+        raidQueue.clear()
+        await ctx.send("```Queue cleared```")
+    else:
+        await ctx.send("Sorry, permission denied.")
 
 #@bot.command()
 #async def asd(ctx, emot: discord.Emoji):
@@ -362,6 +374,16 @@ async def q(ctx, raidName: str = "None"):
 async def n(ctx):
     """Same as }next"""
     await next(ctx)
+
+@bot.command()
+async def c(ctx):
+    """Same as }clearQueue"""
+    await clearQueue(ctx)
+
+@bot.command()
+async def r(ctx):
+    """Same as }clearQueue"""
+    await clearQueue(ctx)
 
 #============== BOT LOOPS =============================
 @tasks.loop(seconds=10)
