@@ -10,11 +10,14 @@ import os
 import io
 import aiohttp
 import random
-import time
-import numpy
-import pickle
+import time         #for delay in votestart
+import datetime     #timestamp in on_message_delete
+import numpy        #for calculation for F
+import pickle       #for storing access data for google sheets
+import pytz         #for time zone data
 
-bot = commands.Bot(command_prefix='}', activity=discord.Game(name='}help'))
+intents = discord.Intents().all()
+bot = commands.Bot(command_prefix='}', activity=discord.Game(name='}help'), case_insensitive=True, intents=intents)
 bot.remove_command('help')
 
 #============== SENSITIVE NUMBERS ==============
@@ -23,7 +26,9 @@ SPREADSHEET_ID = 'IDHere'
 
 miscID = {"jannupals"   : IDHere, #server
           "botfest"     : IDHere, #channel
-          "general"     : IDHere} #channel
+          "general"     : IDHere, #channel
+          "deletedMsg"  : IDHere, #channel
+          }
 
 roles = {"danchou"      : '<@&IDHere>',
          "officers"     : '<@&IDHere>',
@@ -43,7 +48,10 @@ userID = {"haipa"       : IDHere,
           "wayne"       : IDHere,
           "yonji"       : IDHere,
           "joe"         : IDHere,
-          "chinpo"      : IDHere}
+          "chinpo"      : IDHere,
+          "lilium"      : IDHere,
+          "alwing"      : IDHere,
+          }
 
 nukeCode = {"user"      : userID,
             "role"      : roles,
@@ -74,18 +82,36 @@ bonkImages = ['https://i.imgur.com/h2di9EZ.gif',
               'https://i.imgur.com/EZ56Cbz.jpg',
               'https://i.imgur.com/HQFCiLI.jpg',
               'https://i.imgur.com/TELpsTl.jpg',
-              'https://i.imgur.com/SA4uMHJ.jpg']
+              'https://i.imgur.com/SA4uMHJ.jpg',
+              'https://i.imgur.com/as1DDi7.gif']
 
 evadeImages = ['https://i.imgur.com/ruwTwKI.png',
                'https://i.imgur.com/HW6rPzB.png',
                'https://i.imgur.com/uYd12fT.png',
                'https://i.imgur.com/N8NCQWH.jpg']
 
+miscImages = ['https://i.imgur.com/h7xGExX.png',    #bonkcounterBG
+              'https://i.imgur.com/4LVGMPn.jpg',    #respectBG
+              'https://i.imgur.com/8n1zvzR.jpg',    #aaaaa
+              'https://tenor.com/wjNW.gif',         #cricket
+              'https://i.imgur.com/fyG8NZk.png',    #riot
+              'https://i.imgur.com/EmrHMS7.jpg',    #mango
+              'https://i.imgur.com/MYhwSHm.gif',    #solaire
+              'https://tenor.com/bnM1E.gif',        #stickbug
+              'https://i.imgur.com/eywxw5g.gif',    #RAID
+              'https://i.imgur.com/GWiQcKX.jpg',    #umaruSHUTUP
+              'https://i.imgur.com/ZvUC0Eq.jpg',    #joe/chinpo bonk
+              'https://i.imgur.com/rkXH0dl.jpg',    #votestart
+              'https://i.imgur.com/Py5OCUW.png',    #bonked
+              'https://i.imgur.com/xb4ieP2.png',    #bonker
+              ]
+
 allImages = {"down"     : downImages,
              "up"       : upImages,
              "truck"    : truckImages,
              "bonk"     : bonkImages,
-             "evade"    : evadeImages}
+             "evade"    : evadeImages,
+             "misc"     : miscImages}
 
 months = ['January','February','March','April','May','June','July',
           'August','September','October','November','December']
@@ -106,6 +132,7 @@ birthdays = {months[0]:'None (yet)',
 emojis = {"checkmark"   : '✅',
           "crossmark"   : '❌',
           "uwaaru"      : '<:uwaaru:755820728175034489>',
+          "peeporun"    : '<a:peeporun:733977275954888786>',
           "F"           : '🇫'}
 
 ejected = """.      　。　　　•　    　ﾟ　　。　ﾟ
@@ -122,16 +149,36 @@ newLine = "\n"
 
 #============== BOT EVENTS ================================
 @bot.event
-async def on_ready():
+async def on_connect():
+    print('Connected')
     try:
         getBirthdays()
     except:
         print('Birthdays not found, leaving as empty')
-    global sparkBGImage
+    global bonkcountBGImage
     global respectBGImage
-    sparkBGImage = await getBackgroundImage('https://i.imgur.com/dEuGdHI.jpg')
-    respectBGImage = await getBackgroundImage('https://i.imgur.com/4LVGMPn.jpg')
+    global bonkedImage
+    global bonkerImage
+    bonkcountBGImage = await getBackgroundImage(allImages["misc"][0])
+    respectBGImage = await getBackgroundImage(allImages["misc"][1])
+    bonkedImage = await getBackgroundImage(allImages["misc"][12])
+    bonkerImage = await getBackgroundImage(allImages["misc"][13])
+    print('Resources loaded')
+
+@bot.event
+async def on_ready():
     print('We have logged in as {0.user}'.format(bot))
+
+@bot.event
+async def on_message_delete(message):
+    if message.guild.id == nukeCode["misc"]["jannupals"]:
+        msgChannel = bot.get_channel(nukeCode["misc"]["deletedMsg"])
+        embed = discord.Embed(colour = discord.Colour.teal(),
+                              description='Message sent by {0.mention} deleted in {1.mention}\n\n{2}'.format(message.author, message.channel, message.content))
+        embed.set_author(name=str(message.author), icon_url=message.author.avatar_url)
+        embed.set_footer(text=datetime.datetime.now(pytz.timezone('Asia/Tokyo')))
+
+        await msgChannel.send(embed=embed)
 
 @bot.event
 async def on_message(message):
@@ -146,32 +193,36 @@ async def on_message(message):
             else:
                 downSpamBot.start(nukeCode["misc"]["botfest"])
 
+#send Waluigi
+##    if message.content.lower().endswith('waaaa'):
+##        await message.channel.send(allImages["misc"][])
 #send Screaming cat image
     if message.content.lower().endswith('aaaaa'):
-        await message.channel.send('https://i.imgur.com/8n1zvzR.jpg')
+        await message.channel.send(allImages["misc"][2])
 #send Jangkrik
-    if message.content.lower().endswith('cricket cricket') and message.content.lower().startswith('cricket cricket'):
-        await message.channel.send('https://tenor.com/wjNW.gif')
+    elif message.content.lower().endswith('cricket cricket') and message.content.lower().startswith('cricket cricket'):
+        await message.channel.send(allImages["misc"][3])
 #send Riot pic
     if message.content.lower().find('riot') != -1:
-        await message.channel.send('https://i.imgur.com/fyG8NZk.png')
+        await message.channel.send(allImages["misc"][4])
 #send Mango memorial
-    elif message.content.lower().find(' mango ') != -1:
-        await message.channel.send('https://i.imgur.com/EmrHMS7.jpg')
+#    elif message.content.lower().find(' mango ') != -1:
+#        await message.channel.send(allImages["misc"][5])
 #send Solaire
     elif message.content.lower().find('praise the sun') != -1:
-        await message.channel.send('https://i.imgur.com/MYhwSHm.gif')
+        await message.channel.send(allImages["misc"][6])
+#send stickbug
     elif message.content.lower().find('stickbug') != -1:
-        await message.channel.send('https://tenor.com/view/stickbug-excited-dance-dancing-lit-gif-11913206')
+        await message.channel.send(allImages["misc"][7])
 #send RAID: SHADOW LEGENDS
     elif message.content.lower().find('ra') != -1:
         if message.content.lower().find('aai') > message.content.lower().find('ra'):
             if message.content.lower().find('id') > message.content.lower().find('aai'):
-                await message.channel.send('https://i.imgur.com/eywxw5g.gif')
+                await message.channel.send(allImages["misc"][8])
 
 #counters Uwaaru
-    if message.content.find('<:uwaaru:755820728175034489>') != -1:
-        await message.channel.send('https://i.imgur.com/GWiQcKX.jpg')
+    if message.content.find(emojis['uwaaru']) != -1:
+        await message.channel.send(allImages["misc"][9])
 
 #fixes accidental Europa bot mentions
     if len(message.mentions) > 0:
@@ -182,85 +233,120 @@ async def on_message(message):
 
     await bot.process_commands(message)
 
-#============== BOT COMMANDS ==============================
-@bot.command(pass_context = True)
-async def help(ctx, detail = "None"):
-    if detail.lower() == "none":
+#============== BOT HELP COMMANDS ==============================
+@bot.group(aliases=['h'], case_insensitive=True)
+async def help(ctx):
+    if ctx.invoked_subcommand is None:
         embed = discord.Embed(colour = discord.Colour.teal(), description = "Type `}help [command]` for more help.\tE.g. `}help down`")
         embed.set_author(name='Help')
         embed.add_field(name='Global Commands', value="`down` `up` `checkImages` `truck` `bonk` `evade` `F` `votestart`", inline=False)
-        embed.add_field(name='Jannupals-Exclusive Commands', value="`birthday` `queue` `next` `clearqueue`", inline=False)
+        embed.add_field(name='Jannupals-Exclusive Commands', value="`birthday` `queue` `next` `clearqueue` `remove` `bonkcounter`", inline=False)
         embed.add_field(name='Keywords Bot will React to', value='`aaaaa` `riot` `cricket cricket` `raaid` `Praise the sun` `stickbug`', inline=False)
-        embed.add_field(name='Source Code', value='https://github.com/shironats/Jannubot/blob/V2.70_15/10/DiscordBot.py', inline=False)
-    else:
-        if detail.lower() == 'down':
-            embed = discord.Embed(colour = discord.Colour.teal(), description = 'Spams random "Buff is down" images')
-            embed.set_author(name='}down')
-        elif detail.lower() == 'up':
-            embed = discord.Embed(colour = discord.Colour.teal(), description = 'Sends a random "Buff is up" image')
-            embed.set_author(name='}up')
-        elif detail.lower() == 'checkimages':
-            embed = discord.Embed(colour = discord.Colour.teal(), description = 'Check all images')
-            embed.set_author(name='}checkImages')
-        elif (detail.lower() == 'truck') or (detail.lower() == 'isekai'):
-            embed = discord.Embed(colour = discord.Colour.teal(), description = 'Sends a truck after that person')
-            embed.set_author(name='}truck [@ someone]')
-            embed.add_field(name='Aliases', value='`}isekai`', inline=False)
-        elif detail.lower() == 'bonk':
-            embed = discord.Embed(colour = discord.Colour.teal(), description = 'Bonks that person')
-            embed.set_author(name='}bonk [@ someone] "reason for bonk [optional]"')
-        elif detail.lower() == 'evade':
-            embed = discord.Embed(colour = discord.Colour.teal(), description = 'Rolls for bonk evasion')
-            embed.set_author(name='}evade')
-        elif detail.lower() == 'birthday':
-            embed = discord.Embed(colour = discord.Colour.teal(), description = 'Sends your birthday to my txt file')
-            embed.set_author(name='}birthday [date] [month]')
-            embed.add_field(name='Note', value='Only available to Jannupals members.', inline=False)
-        elif detail.lower() == 'f':
-            embed = discord.Embed(colour = discord.Colour.teal(), description = 'Press F to Pay Respects')
-            embed.set_author(name='}F [@ someone]')
-        elif (detail.lower() == 'queue') or (detail.lower() == 'q'):
-            embed = discord.Embed(colour = discord.Colour.teal(), description = 'Check raid host queue')
-            embed.set_author(name='}queue')
-            embed.add_field(name='}queue [raid name]', value='Add to raid host queue', inline=False)
-            embed.add_field(name='Note', value='Only available to Jannupals members.', inline=False)
-            embed.add_field(name='Aliases', value='`}q`')
-        elif (detail.lower() == 'next') or (detail.lower() == 'n'):
-            embed = discord.Embed(colour = discord.Colour.teal(), description = 'Moves the raid host queue')
-            embed.set_author(name='}next')
-            embed.add_field(name='Note', value='Only available to Jannupals members.', inline=False)
-            embed.add_field(name='Aliases', value='`}n`', inline=False)
-        elif (detail.lower() == 'remove') or (detail.lower() == 'r'):
-            embed = discord.Embed(colour = discord.Colour.teal(), description = 'Removes selected entry from the raid host queue')
-            embed.set_author(name='}remove [entry number]')
-            embed.add_field(name='Note', value='Only available to Jannupals members.', inline=False)
-            embed.add_field(name='Aliases', value='`}r`', inline=False)
-        elif (detail.lower() == 'clearqueue') or (detail.lower() == 'c'):
-            embed = discord.Embed(colour = discord.Colour.teal(), description = 'Clears the raid host queue')
-            embed.set_author(name='}clearqueue')
-            embed.add_field(name='Note', value='Only available to Jannupals members.', inline=False)
-            embed.add_field(name='Aliases', value='`}c`', inline=False)
-        elif detail.lower() == 'votestart':
-            embed = discord.Embed(colour = discord.Colour.teal(), description = 'Vote to YEET that person')
-            embed.set_author(name='}votestart [@ someone]')
-        else:
-            embed = discord.Embed(colour = discord.Colour.teal(), description = 'Please check }help')
-            embed.set_author(name='No such command')
+        embed.add_field(name='Source Code', value='https://github.com/shironats/Jannubot/blob/V2.80_28/10/DiscordBot.py', inline=False)
+        await ctx.send(embed=embed)
+
+@help.command()
+async def down(ctx):
+    embed = discord.Embed(colour = discord.Colour.teal(), description = 'Spams random "Buff is down" images')
+    embed.set_author(name='}down')
     await ctx.send(embed=embed)
+
+@help.command()
+async def up(ctx):
+    embed = discord.Embed(colour = discord.Colour.teal(), description = 'Sends a random "Buff is up" image')
+    embed.set_author(name='}up')
+    await ctx.send(embed=embed)
+
+@help.command()
+async def checkImages(ctx):
+    embed = discord.Embed(colour = discord.Colour.teal(), description = 'Check all images')
+    embed.set_author(name='}checkImages')
+    await ctx.send(embed=embed)
+
+@help.command(aliases=['isekai'])
+async def truck(ctx):
+    embed = discord.Embed(colour = discord.Colour.teal(), description = 'Sends a truck after that person')
+    embed.set_author(name='}truck [@ someone]')
+    embed.add_field(name='Aliases', value='`}isekai`', inline=False)
+    await ctx.send(embed=embed)
+
+@help.command()
+async def bonk(ctx):
+    embed = discord.Embed(colour = discord.Colour.teal(), description = 'Bonks that person')
+    embed.set_author(name='}bonk [@ someone] "reason for bonk [optional]"')
+    await ctx.send(embed=embed)
+
+@help.command()
+async def evade(ctx):
+    embed = discord.Embed(colour = discord.Colour.teal(), description = 'Rolls for bonk evasion')
+    embed.set_author(name='}evade')
+    await ctx.send(embed=embed)
+
+@help.command()
+async def birthday(ctx):
+    embed = discord.Embed(colour = discord.Colour.teal(), description = 'Sends your birthday to my txt file.\nBoth inputs must be numbers.')
+    embed.set_author(name='}birthday [date] [month]')
+    embed.add_field(name='Note', value='Only available to Jannupals members.', inline=False)
+    await ctx.send(embed=embed)
+
+@help.command()
+async def F(ctx):
+    embed = discord.Embed(colour = discord.Colour.teal(), description = 'Press F to Pay Respects')
+    embed.set_author(name='}F [@ someone]')
+    await ctx.send(embed=embed)
+
+@help.command(aliases=['q'])
+async def queue(ctx):
+    embed = discord.Embed(colour = discord.Colour.teal(), description = 'Check raid host queue')
+    embed.set_author(name='}queue')
+    embed.add_field(name='}queue [raid name]', value='Add to raid host queue', inline=False)
+    embed.add_field(name='Note', value='Only available to Jannupals members.', inline=False)
+    embed.add_field(name='Aliases', value='`}q`')
+    await ctx.send(embed=embed)
+
+@help.command(aliases=['n'])
+async def next(ctx):
+    embed = discord.Embed(colour = discord.Colour.teal(), description = 'Moves the raid host queue')
+    embed.set_author(name='}next')
+    embed.add_field(name='Note', value='Only available to Jannupals members.', inline=False)
+    embed.add_field(name='Aliases', value='`}n`', inline=False)
+    await ctx.send(embed=embed)
+
+@help.command(aliases=['r'])
+async def remove(ctx):
+    embed = discord.Embed(colour = discord.Colour.teal(), description = 'Removes selected entry from the raid host queue')
+    embed.set_author(name='}remove [entry number]')
+    embed.add_field(name='Note', value='Only available to Jannupals members.', inline=False)
+    embed.add_field(name='Aliases', value='`}r`', inline=False)
+    await ctx.send(embed=embed)
+
+@help.command(aliases=['c'])
+async def clearqueue(ctx):
+    embed = discord.Embed(colour = discord.Colour.teal(), description = 'Clears the raid host queue')
+    embed.set_author(name='}clearqueue')
+    embed.add_field(name='Note', value='Only available to Jannupals members.', inline=False)
+    embed.add_field(name='Aliases', value='`}c`', inline=False)
+    await ctx.send(embed=embed)
+
+@help.command()
+async def votestart(ctx):
+    embed = discord.Embed(colour = discord.Colour.teal(), description = 'Vote to YEET that person')
+    embed.set_author(name='}votestart [@ someone]')
+    await ctx.send(embed=embed)
+
+@help.command()
+async def bonkcounter(ctx):
+    embed = discord.Embed(colour = discord.Colour.teal(), description = 'Displays your bonk counters')
+    embed.set_author(name='}bonkcounter')
+    embed.add_field(name='Note', value='Only available to Jannupals members.', inline=False)
+    await ctx.send(embed=embed)
+
+#============== BOT COMMANDS ==============================
 
 @bot.command()
 async def down(ctx):
     """Sends a random 'Buff is down' image"""
     downSpam.start(ctx)
-
-@bot.command()
-async def test(ctx, func: str, imgID: int):
-    """Function for testing"""
-    try:
-        link = allImages[func][imgID]
-    except:
-        link = allImages["bonk"][5]
-    await sendSinglePic(ctx, link)
 
 @bot.command()
 async def up(ctx):
@@ -276,29 +362,64 @@ async def checkImages(ctx):
     for imgList in allImages:
         for iCounter in range(len(allImages[imgList])):
             link = allImages[imgList][iCounter]
-            await sendSinglePic(ctx, link)
+            if 'tenor' in link or 'gif' not in link:
+                await ctx.send(link)
+            else:
+                await sendSinglePic(ctx, link)
  
-@bot.command()
+@bot.command(aliases=['isekai'])
 async def truck(ctx, member: discord.Member):
     """Sends a truck over"""
     link = allImages["truck"][random.randint(0,len(truckImages)-1)]
     embed = discord.Embed(colour = discord.Colour.teal(), description = '{0.mention}, {1.mention} sends their regards.'.format(member, ctx.message.author))
-    embed.set_image(url='attachment://img%s' %(link[27:]))
+    embed.set_image(url='attachment://img%s' %(link[link.find(".",link.find(".com")+1):]))
     await sendSinglePic(ctx, link, embed)
 
 @bot.command()
 async def bonk(ctx, member: discord.Member, reason = "being bad"):
     """Bonks a member"""
     if ((member == bot.get_user(nukeCode["user"]["joe"])) or (member == bot.get_user(nukeCode["user"]["chinpo"]))):
-        link = 'https://i.imgur.com/ZvUC0Eq.jpg'
+        link = allImages["misc"][10]
     else:
         link = allImages["bonk"][random.randint(0,len(bonkImages)-1)]
+
     if (member == bot.get_user(nukeCode["user"]["self"])):
         embed = discord.Embed(colour = discord.Colour.teal(), description = "{0.mention} has been BONKED by {1.mention} for {2}.".format(ctx.message.author, member, reason))
+        memberIDs = (str(ctx.author.id), str(member.id))
     else:
         embed = discord.Embed(colour = discord.Colour.teal(), description = "{0.mention} has been BONKED by {1.mention} for {2}.".format(member, ctx.message.author, reason))
-    embed.set_image(url='attachment://img%s' %(link[27:]))
+        memberIDs = (str(member.id), str(ctx.author.id))
+
+    embed.set_image(url='attachment://img%s' %(link[link.find(".",link.find(".com")+1):]))
     await sendSinglePic(ctx, link, embed)
+    if(ctx.guild.id == nukeCode["misc"]["jannupals"]):
+        if not updateSheet(memberIDs[0], memberIDs[1]):
+            dev = bot.get_user(nukeCode["user"]["self"])
+            await dev.send('Failed to update sheet')
+
+@bot.command()
+async def bonkcounter(ctx, member: discord.Member = None):
+    """Checks bonk counter"""
+    if(ctx.guild.id == nukeCode["misc"]["jannupals"]):
+        if member == None:
+            target = ctx.author
+        else:
+            target = member
+        stats = readSheet(str(target.id))
+
+        if stats == None:
+            await ctx.send("You are not in DA's database yet")
+        else:
+            card = bonkCard(target.name, stats)
+            card = await setAvatarnIcon(target, card)
+
+            #send image
+            imgBuffer = io.BytesIO()
+            card.save(imgBuffer, format='PNG')
+            imgBuffer.seek(0)
+            await ctx.send("Border credits to %s"%(bot.get_user(nukeCode["user"]["alwing"])), file=discord.File(imgBuffer, 'myimg.png'))
+    else:
+        await ctx.send("Sorry, permission denied.")
 
 @bot.command()
 async def evade(ctx):
@@ -309,7 +430,7 @@ async def evade(ctx):
     else:
         link = allImages["bonk"][random.randint(0,len(bonkImages)-1)]
         embed = discord.Embed(colour = discord.Colour.teal(), description = "{0.mention} is BONKED again by {1.mention} for trying to evade the bonk.".format(ctx.message.author, bot.user))
-    embed.set_image(url='attachment://img%s' %(link[27:]))
+    embed.set_image(url='attachment://img%s' %(link[link.find(".",link.find(".com")+1):]))
     await sendSinglePic(ctx, link, embed)
 
 @bot.command()
@@ -327,10 +448,15 @@ async def bday(ctx):
 @bot.command()
 async def birthday(ctx, date: int, month: int):
     """Set Birthday"""
-    if(ctx.guild.id == nukeCode["misc"]["jannupals"]):
-        addBirthdays(ctx, date, month)
-        getBirthdays()
-        await ctx.send("Your birthday has been added to DA's database")
+#    if(ctx.guild.id == nukeCode["misc"]["jannupals"]):
+    if(ctx.author.id == nukeCode["user"]["self"]):
+        try:
+            addBirthdays(ctx, date, month)
+        except:
+            await ctx.send("Sorry, something went wrong")
+        else:
+            getBirthdays()
+            await ctx.send("Your birthday has been added to DA's database")
     else:
         await ctx.send("Sorry, permission denied.")
 
@@ -382,7 +508,7 @@ async def F(ctx, member: discord.Member):
     myMessage = await ctx.send(file=discord.File(buffer_output, "img.jpeg"), embed = embed)
     await myMessage.add_reaction(emojis["F"])
 
-@bot.command()
+@bot.command(aliases=['q'])
 async def queue(ctx, raidName: str = "None"):
     """Add raid to queue"""
     if(ctx.guild.id == nukeCode["misc"]["jannupals"]):
@@ -413,7 +539,7 @@ async def queue(ctx, raidName: str = "None"):
     else:
         await ctx.send("Sorry, permission denied.")
 
-@bot.command()
+@bot.command(aliases=['n'])
 async def next(ctx):
     """Next raid up"""
     if(ctx.guild.id == nukeCode["misc"]["jannupals"]):
@@ -431,7 +557,7 @@ async def next(ctx):
     else:
         await ctx.send("Sorry, permission denied.")
 
-@bot.command()
+@bot.command(aliases=['r'])
 async def remove(ctx, entry: int):
     """Remove queue entry"""
     if(ctx.guild.id == nukeCode["misc"]["jannupals"]):
@@ -446,7 +572,7 @@ async def remove(ctx, entry: int):
     else:
         await ctx.send("Sorry, permission denied.")
 
-@bot.command()
+@bot.command(aliases=['c'])
 async def clearqueue(ctx):
     """Clears raid queue"""
     if(ctx.guild.id == nukeCode["misc"]["jannupals"]):
@@ -459,10 +585,10 @@ async def clearqueue(ctx):
 @bot.command()
 async def votestart(ctx, member: discord.Member):
     """Vote to kick off"""
-    link = "https://i.imgur.com/rkXH0dl.jpg"
+    link = allImages["misc"][11]
     embed = discord.Embed(colour = discord.Colour.teal(), description = "You have 15 seconds to vote.")
     embed.set_author(name = "Emergency meeting called to eject %s." %(member.display_name))
-    embed.set_image(url='attachment://img%s' %(link[27:]))
+    embed.set_image(url='attachment://img%s' %(link[link.find(".",link.find(".com")+1):]))
     myMessage = await sendSinglePic(ctx, link, embed)
     await myMessage.add_reaction(emojis["checkmark"])
     await myMessage.add_reaction(emojis["crossmark"])
@@ -473,48 +599,11 @@ async def votestart(ctx, member: discord.Member):
     else:
         await ctx.send(ejected %("No one", ". (Skipped)"))
 
-#============== ALT COMMANDS ==========================
-@bot.command(pass_context = True)
-async def h(ctx, detail = "None"):
-    """Same as }help"""
-    await help(ctx, detail)
-
 @bot.command()
-async def isekai(ctx, member: discord.Member):
-    """Same as }truck"""
-    await truck(ctx, member)
-
-@bot.command()
-async def q(ctx, raidName: str = "None"):
-    """Same as }queue"""
-    await queue(ctx, raidName)
-
-@bot.command()
-async def n(ctx):
-    """Same as }next"""
-    await next(ctx)
-
-@bot.command()
-async def c(ctx):
-    """Same as }clearqueue"""
-    await clearqueue(ctx)
-
-@bot.command()
-async def r(ctx, entry: int):
-    """Same as }remove"""
-    await remove(ctx, entry)
-
-#============== BOT LOOPS =============================
-@tasks.loop(seconds=10)
-async def downSpam(ctx):
-    link = allImages["down"][random.randint(0,len(downImages)-1)]
-    await sendPics(ctx, link, True, downSpam.current_loop)
-
-@tasks.loop(seconds=10)
-async def downSpamBot(target_channel):
-    link = allImages["down"][random.randint(0,len(downImages)-1)]
-    msgChannel = bot.get_channel(target_channel)
-    await sendPics(msgChannel, link, True, downSpamBot.current_loop)
+async def test(ctx, func: str, imgID: int):
+    """Function for testing"""
+    link = allImages[func][imgID]
+    await sendSinglePic(ctx, link)
 
 #============== FUNCTIONS==============================
 def getBirthdays():
@@ -553,7 +642,7 @@ def addBirthdays(ctx, date: int, month: int):
     for iCounter in range(len(lines)):
         fullText += lines[iCounter]
         fullText += newLine
-    textfile.write_text(fullText)
+    textfile.write_text(fullText, encoding = 'utf-8')
 
 def find_coeffs(pa, pb):
     matrix = []
@@ -567,6 +656,196 @@ def find_coeffs(pa, pb):
     res = numpy.dot(numpy.linalg.inv(A.T * A) * A.T, B)
     return numpy.array(res).reshape(8)
 
+def updateSheet(member1, member2):
+    SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+    RANGE_NAME = 'Sheet1!A2:C'
+
+    creds = None
+    # The file token.pickle stores the user's access and refresh tokens, and is
+    # created automatically when the authorization flow completes for the first
+    # time.
+    if os.path.exists(data_folder/'token.pickle'):
+        with open(data_folder/'token.pickle', 'rb') as token:
+            creds = pickle.load(token)
+    # If there are no (valid) credentials available, let the user log in.
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                data_folder/'credentials.json', SCOPES)
+            creds = flow.run_local_server(port=0)
+        # Save the credentials for the next run
+        with open(data_folder/'token.pickle', 'wb') as token:
+            pickle.dump(creds, token)
+
+    service = build('sheets', 'v4', credentials=creds)
+    # Call the Sheets API
+    sheet = service.spreadsheets()
+
+    # Read
+    readResult = sheet.values().get(spreadsheetId=SPREADSHEET_ID,
+                                range=RANGE_NAME).execute()
+    values = readResult.get('values', [])
+
+    if not values:
+        print('No data found.')
+        return False
+    else:
+        users = []
+        for row in values:
+            users.append(row[0])
+            if row[0] == member2:
+                # Bonker -> Column B
+                # Bonked -> Column C
+                row[1] = int(row[1]) + 1
+                row[2] = int(row[2])
+            elif row[0] == member1:
+                row[1] = int(row[1])
+                row[2] = int(row[2]) + 1
+            else:
+                row[1] = int(row[1])
+                row[2] = int(row[2])
+        if member2 not in users:
+            values.append([member1, 1, 0])
+        if member1 not in users:
+            values.append([member2, 0, 1])
+
+    # Write
+    body = {'values': values}
+    writeResult = sheet.values().update(spreadsheetId=SPREADSHEET_ID,
+                                   range=RANGE_NAME,
+                                   valueInputOption='USER_ENTERED',
+                                   body=body).execute()
+    return True
+
+def readSheet(memberID):
+    SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+    RANGE_NAME = 'Sheet1!A2:C'
+
+    creds = None
+    # The file token.pickle stores the user's access and refresh tokens, and is
+    # created automatically when the authorization flow completes for the first
+    # time.
+    if os.path.exists(data_folder/'token.pickle'):
+        with open(data_folder/'token.pickle', 'rb') as token:
+            creds = pickle.load(token)
+    # If there are no (valid) credentials available, let the user log in.
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                data_folder/'credentials.json', SCOPES)
+            creds = flow.run_local_server(port=0)
+        # Save the credentials for the next run
+        with open(data_folder/'token.pickle', 'wb') as token:
+            pickle.dump(creds, token)
+
+    service = build('sheets', 'v4', credentials=creds)
+    # Call the Sheets API
+    sheet = service.spreadsheets()
+
+    # Read
+    readResult = sheet.values().get(spreadsheetId=SPREADSHEET_ID,
+                                range=RANGE_NAME).execute()
+    values = readResult.get('values', [])
+
+    if not values:
+        print('No data found.')
+        return None
+    else:
+        users = []
+        for row in values:
+            users.append(row[0])
+            if row[0] == memberID:
+                # Bonker -> Column B
+                # Bonked -> Column C
+                stats = (int(row[1]), int(row[2]))
+                return stats
+        if memberID not in users:
+            return None
+
+def bonkCard(userName, bonkStats):
+    avatarSize = 128
+    iconSize = 70
+    nameSize = 1
+    numSize = 1
+    myImage = bonkcountBGImage.copy()
+
+    imgWidth, imgHeight = myImage.size
+
+    #name box
+    rectLeft = 50
+    rectTop = 30
+    rectRight = imgWidth - 50
+    rectBottom = rectTop + avatarSize + 5
+    rectWidth = rectRight - rectLeft
+    rectHeight = rectBottom - rectTop
+    #bonked box
+    bonkedRectLeft = rectLeft
+    bonkedRectTop = rectBottom + 10
+    bonkedRectRight = imgWidth / 2 - 5
+    bonkedRectBottom = bonkedRectTop + iconSize + 5
+    bonkedRectWidth = bonkedRectRight - bonkedRectLeft
+    bonkedRectHeight = bonkedRectBottom - bonkedRectTop
+    #bonker box
+    bonkerRectLeft = bonkedRectRight + 10
+    bonkerRectTop = rectBottom + 10
+    bonkerRectRight = imgWidth - 50
+    bonkerRectBottom = bonkerRectTop + iconSize + 5
+    bonkerRectWidth = bonkerRectRight - bonkerRectLeft
+    bonkerRectHeight = bonkerRectBottom - bonkerRectTop
+    #draw boxes
+    rectImg = Image.new('RGBA', (imgWidth, imgHeight))
+    rectDraw = ImageDraw.Draw(rectImg)
+    rectDraw.rectangle((rectLeft, rectTop, rectRight, rectBottom), fill=(255,255,255,125), outline=(0,0,0,255))
+    rectDraw.rectangle((bonkedRectLeft, bonkedRectTop, bonkedRectRight, bonkedRectBottom), fill=(255,255,255,125), outline=(0,0,0,255))
+    rectDraw.rectangle((bonkerRectLeft, bonkerRectTop, bonkerRectRight, bonkerRectBottom), fill=(255,255,255,125), outline=(0,0,0,255))
+    myImage = Image.alpha_composite(myImage, rectImg)
+
+    #set text and font
+    drawImg = ImageDraw.Draw(myImage)
+    imgText = '%s'%(userName)
+    bonkerText = '%i'%(bonkStats[0])
+    bonkedText = '%i'%(bonkStats[1])
+    fontFile = 'times.ttf'
+    try:
+        ImageFont.truetype(fontFile, nameSize)
+    except:
+        fontFile = '/usr/share/fonts/truetype/freefont/FreeSansBold.ttf'
+        print('Using backup font')
+    imgFont = ImageFont.truetype(fontFile, nameSize)
+    numFont = ImageFont.truetype(fontFile, numSize)
+    #adjust font size
+    while (imgFont.getsize(imgText)[0] < (rectWidth - avatarSize - 100)) and (imgFont.getsize(imgText)[1] < (rectHeight - 30)):
+        nameSize += 1
+        imgFont = ImageFont.truetype(fontFile, nameSize)
+    nameSize -= 1
+    imgFont = ImageFont.truetype(fontFile, nameSize)
+    while (numFont.getsize(bonkerText)[0] < (bonkerRectWidth - iconSize - 20)) and (numFont.getsize(bonkerText)[1] < (bonkerRectHeight * 0.9)):
+        numSize += 1
+        numFont = ImageFont.truetype(fontFile, numSize)
+    numSize -= 1
+    numFont = ImageFont.truetype(fontFile, numSize)
+    #set text position and place text
+    imgText_width, imgText_height = drawImg.textsize(imgText, font=imgFont)
+    textX = (rectWidth - imgText_width + avatarSize)//2 + rectLeft
+    textY = (rectHeight - imgText_height)//2 + rectTop
+    drawImg.text( (textX, textY), imgText, fill=(255,255,255), font=imgFont, stroke_width=2, stroke_fill=(0,0,0))
+
+    bonkerText_width, bonkerText_height = drawImg.textsize(bonkerText, font=numFont)
+    bonkerTextX = (bonkerRectWidth - bonkerText_width + iconSize)//2 + bonkerRectLeft
+    bonkerTextY = bonkerRectTop - bonkerText_height//10
+    drawImg.text( (bonkerTextX, bonkerTextY), bonkerText, fill=(255,255,255), font=numFont, stroke_width=2, stroke_fill=(0,0,0))
+
+    bonkedText_width, bonkedText_height = drawImg.textsize(bonkedText, font=numFont)
+    bonkedTextX = (bonkedRectWidth - bonkedText_width + iconSize)//2 + bonkedRectLeft
+    bonkedTextY = bonkedRectTop - bonkedText_height//10
+    drawImg.text( (bonkedTextX, bonkedTextY), bonkedText, fill=(255,255,255), font=numFont, stroke_width=2, stroke_fill=(0,0,0))
+
+    return myImage
+
 #============== ASYNC FUNCTIONS =======================
 async def sendPics(ctx, imglink, withText, loopNum = 0):
     async with aiohttp.ClientSession() as session:
@@ -577,7 +856,7 @@ async def sendPics(ctx, imglink, withText, loopNum = 0):
             if withText == True:
                 await ctx.send('%s or %s, Please reactivate crew buffs, this is reminder number %i' %(nukeCode["role"]["danchou"],nukeCode["role"]["officers"],loopNum), file=discord.File(data, 'img%s'%(imglink[27:])))
             else:
-                await ctx.send(file=discord.File(data, 'img%s'%(imglink[27:])))
+                await ctx.send(file=discord.File(data, 'img%s'%(imglink[imglink.find(".",imglink.find(".com")+1):])))
 
 async def sendSinglePic(ctx, imglink, embed = None):
     async with aiohttp.ClientSession() as session:
@@ -585,7 +864,7 @@ async def sendSinglePic(ctx, imglink, embed = None):
             if resp.status != 200:
                 return await ctx.send('Could not download file...')
             data = io.BytesIO(await resp.read())
-            return await ctx.send(file=discord.File(data, 'img%s'%(imglink[27:])), embed = embed)
+            return await ctx.send(file=discord.File(data, 'img%s'%(imglink[imglink.find(".",imglink.find(".com")+1):])), embed = embed)
 
 async def getBackgroundImage(imglink: str):
     async with aiohttp.ClientSession() as session:
@@ -597,5 +876,56 @@ async def getBackgroundImage(imglink: str):
             myImage = Image.open(aImage)
             myImage = myImage.convert('RGBA')
             return myImage
-        
+
+async def setAvatarnIcon(member, myImage):
+    avatarSize = 128
+    iconSize = 70
+    imgWidth, imgHeight = myImage.size
+
+    bonkedImg = bonkedImage.resize((iconSize,iconSize))
+    bonkerImg = bonkerImage.resize((iconSize,iconSize))
+
+    #name box
+    rectLeft = 50
+    rectTop = 30
+    rectRight = imgWidth - 50
+    rectBottom = rectTop + avatarSize + 5
+    rectWidth = rectRight - rectLeft
+    rectHeight = rectBottom - rectTop
+    #other boxes
+    bonkedRectLeft = rectLeft
+    bonkedRectTop = rectBottom + 10
+    bonkerRectLeft = imgWidth // 2 + 5
+    bonkerRectTop = rectBottom + 10
+    
+    #get user avatar image
+    avatarAsset = member.avatar_url_as(format='png', size=256)
+    bufferAvatar = io.BytesIO(await avatarAsset.read())
+    avatarImage = Image.open(bufferAvatar)
+    avatarImage = avatarImage.resize((avatarSize,avatarSize))
+    #make circle mask
+    circleAvatar = Image.new('L', (avatarSize, avatarSize))
+    circleDraw = ImageDraw.Draw(circleAvatar)
+    circleDraw.ellipse((0, 0, avatarSize, avatarSize), fill=255)
+    #combine avatar, mask, and spark image
+    avatarLayer = Image.new('RGBA', (imgWidth, imgHeight))
+    avatarLayer.paste(avatarImage, (rectLeft+2, rectTop+2), circleAvatar)
+    avatarLayer.paste(bonkedImg, (bonkedRectLeft+2, bonkedRectTop+2))
+    avatarLayer.paste(bonkerImg, (bonkerRectLeft+2, bonkerRectTop+2))
+    myImage = Image.alpha_composite(myImage, avatarLayer)
+
+    return myImage
+
+#============== BOT LOOPS =============================
+@tasks.loop(seconds=10)
+async def downSpam(ctx):
+    link = allImages["down"][random.randint(0,len(downImages)-1)]
+    await sendPics(ctx, link, True, downSpam.current_loop)
+
+@tasks.loop(seconds=10)
+async def downSpamBot(target_channel):
+    link = allImages["down"][random.randint(0,len(downImages)-1)]
+    msgChannel = bot.get_channel(target_channel)
+    await sendPics(msgChannel, link, True, downSpamBot.current_loop)
+
 bot.run(TOKEN)
