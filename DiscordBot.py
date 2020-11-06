@@ -24,7 +24,7 @@ bot.remove_command('help')
 TOKEN = 'IDHere'
 SPREADSHEET_ID = 'IDHere'
 
-miscID = {"jannupals"   : IDHere, #server
+miscID = {"jannupals"   : 673807232261160961, #server
           "botfest"     : IDHere, #channel
           "general"     : IDHere, #channel
           "deletedMsg"  : IDHere, #channel
@@ -138,7 +138,7 @@ emojis = {"checkmark"   : '✅',
 ejected = """.      　。　　　•　    　ﾟ　　。　ﾟ
 　　.　　　.　　　  　　.　　　　　。　　
 　.　　      。　        ඞ   。　    .    •
-  •              %s was ejected%s 。　.
+  •              %s was %s%s 。　.
 　 　　。　　 　　　　ﾟ　　　.　    　　　。
 ,　　　　.　 .　　    .             .                  ."""
 
@@ -159,10 +159,12 @@ async def on_connect():
     global respectBGImage
     global bonkedImage
     global bonkerImage
+    global jannuEmotes
     bonkcountBGImage = await getBackgroundImage(allImages["misc"][0])
     respectBGImage = await getBackgroundImage(allImages["misc"][1])
     bonkedImage = await getBackgroundImage(allImages["misc"][12])
     bonkerImage = await getBackgroundImage(allImages["misc"][13])
+    jannuEmotes = getEmojis()
     print('Resources loaded')
 
 @bot.event
@@ -239,16 +241,18 @@ async def help(ctx):
     if ctx.invoked_subcommand is None:
         embed = discord.Embed(colour = discord.Colour.teal(), description = "Type `}help [command]` for more help.\tE.g. `}help down`")
         embed.set_author(name='Help')
-        embed.add_field(name='Global Commands', value="`down` `up` `checkImages` `truck` `bonk` `evade` `F` `votestart`", inline=False)
-        embed.add_field(name='Jannupals-Exclusive Commands', value="`birthday` `queue` `next` `clearqueue` `remove` `bonkcounter`", inline=False)
+        embed.add_field(name='Global Commands', value="`up` `checkImages` `truck` `bonk` `evade` `F` `votestart` `yeet`", inline=False)
+        embed.add_field(name='Jannupals-Exclusive Commands', value="`down` `birthday` `queue` `next` `clearqueue` `remove` `bonkcounter` `emote`", inline=False)
         embed.add_field(name='Keywords Bot will React to', value='`aaaaa` `riot` `cricket cricket` `raaid` `Praise the sun` `stickbug`', inline=False)
-        embed.add_field(name='Source Code', value='https://github.com/shironats/Jannubot/blob/V2.80_28/10/DiscordBot.py', inline=False)
+        embed.add_field(name='Other stuff', value='''[Source Code](https://github.com/shironats/Jannubot/blob/V2.90_07/11/DiscordBot.py)
+                                                    [Jannubot invite link](https://discord.com/api/oauth2/authorize?client_id=731865140068089897&permissions=523328&scope=bot)''', inline=False)
         await ctx.send(embed=embed)
 
 @help.command()
 async def down(ctx):
     embed = discord.Embed(colour = discord.Colour.teal(), description = 'Spams random "Buff is down" images')
     embed.set_author(name='}down')
+    embed.add_field(name='Note', value='Only available to Jannupals members.', inline=False)
     await ctx.send(embed=embed)
 
 @help.command()
@@ -335,10 +339,24 @@ async def votestart(ctx):
     await ctx.send(embed=embed)
 
 @help.command()
+async def yeet(ctx):
+    embed = discord.Embed(colour = discord.Colour.teal(), description = 'Just YEET anything')
+    embed.set_author(name='}yeet [something]')
+    await ctx.send(embed=embed)
+
+@help.command()
 async def bonkcounter(ctx):
     embed = discord.Embed(colour = discord.Colour.teal(), description = 'Displays your bonk counters')
     embed.set_author(name='}bonkcounter')
     embed.add_field(name='Note', value='Only available to Jannupals members.', inline=False)
+    await ctx.send(embed=embed)
+
+@help.command(aliases=['emo'])
+async def emote(ctx):
+    embed = discord.Embed(colour = discord.Colour.teal(), description = 'Sends an animated emote\nWill send a list of animated emotes instead if argument is not given')
+    embed.set_author(name='}emote [emote name]')
+    embed.add_field(name='Note', value='Only available to Jannupals members.', inline=False)
+    embed.add_field(name='Aliases', value='`}emo`', inline=False)
     await ctx.send(embed=embed)
 
 #============== BOT COMMANDS ==============================
@@ -346,14 +364,17 @@ async def bonkcounter(ctx):
 @bot.command()
 async def down(ctx):
     """Sends a random 'Buff is down' image"""
-    downSpam.start(ctx)
+    if(ctx.guild.id == nukeCode["misc"]["jannupals"]):
+        downSpam.start(ctx)
+    else:
+        await ctx.send("Sorry, permission denied.")
 
 @bot.command()
 async def up(ctx):
     """Sets timer for next buff reactivation"""
     downSpam.cancel()
     downSpamBot.cancel()
-    link = allImages["up"][random.randint(0,len(upImages)-1)]
+    link = allImages["up"][random.randrange(0,len(upImages))]
     await sendSinglePic(ctx, link)
 
 @bot.command()
@@ -370,7 +391,7 @@ async def checkImages(ctx):
 @bot.command(aliases=['isekai'])
 async def truck(ctx, member: discord.Member):
     """Sends a truck over"""
-    link = allImages["truck"][random.randint(0,len(truckImages)-1)]
+    link = allImages["truck"][random.randrange(0,len(truckImages))]
     embed = discord.Embed(colour = discord.Colour.teal(), description = '{0.mention}, {1.mention} sends their regards.'.format(member, ctx.message.author))
     embed.set_image(url='attachment://img%s' %(link[link.find(".",link.find(".com")+1):]))
     await sendSinglePic(ctx, link, embed)
@@ -381,7 +402,7 @@ async def bonk(ctx, member: discord.Member, reason = "being bad"):
     if ((member == bot.get_user(nukeCode["user"]["joe"])) or (member == bot.get_user(nukeCode["user"]["chinpo"]))):
         link = allImages["misc"][10]
     else:
-        link = allImages["bonk"][random.randint(0,len(bonkImages)-1)]
+        link = allImages["bonk"][random.randrange(0,len(bonkImages))]
 
     if (member == bot.get_user(nukeCode["user"]["self"])):
         embed = discord.Embed(colour = discord.Colour.teal(), description = "{0.mention} has been BONKED by {1.mention} for {2}.".format(ctx.message.author, member, reason))
@@ -425,10 +446,10 @@ async def bonkcounter(ctx, member: discord.Member = None):
 async def evade(ctx):
     """Roll for evasion"""
     if(random.randint(1,20) > 18):
-        link = allImages["evade"][random.randint(0,len(evadeImages)-1)]
+        link = allImages["evade"][random.randrange(0,len(evadeImages))]
         embed = discord.Embed(colour = discord.Colour.teal(), description = "{0.mention} evades the bonk.".format(ctx.message.author))
     else:
-        link = allImages["bonk"][random.randint(0,len(bonkImages)-1)]
+        link = allImages["bonk"][random.randrange(0,len(bonkImages))]
         embed = discord.Embed(colour = discord.Colour.teal(), description = "{0.mention} is BONKED again by {1.mention} for trying to evade the bonk.".format(ctx.message.author, bot.user))
     embed.set_image(url='attachment://img%s' %(link[link.find(".",link.find(".com")+1):]))
     await sendSinglePic(ctx, link, embed)
@@ -595,9 +616,31 @@ async def votestart(ctx, member: discord.Member):
     time.sleep(15)
     myMessage = await ctx.fetch_message(myMessage.id)
     if myMessage.reactions[0].count > myMessage.reactions[1].count:
-        await ctx.send(ejected %(member.display_name, "."))
+        await ctx.send(ejected %(member.display_name, "ejected", "."))
     else:
-        await ctx.send(ejected %("No one", ". (Skipped)"))
+        await ctx.send(ejected %("No one", "ejected", ". (Skipped)"))
+
+@bot.command()
+async def yeet(ctx, thing: str):
+    """Just kick off"""
+    await ctx.send(ejected %(thing, "yeeted", "."))
+
+@bot.command(aliases=['emo'])
+async def emote(ctx, emoteName: str = None):
+    """Let the people use animated emotes"""
+    if(ctx.guild.id == nukeCode["misc"]["jannupals"]):
+        if emoteName != None:
+            check = False
+            for content in jannuEmotes:
+                if emoteName in content:
+                    check = True
+                    await ctx.send(content)
+            if not check:
+                await ctx.send('Emote not found')
+        else:
+            await ctx.send(" ".join(jannuEmotes))
+    else:
+        await ctx.send("Sorry, permission denied.")
 
 @bot.command()
 async def test(ctx, func: str, imgID: int):
@@ -656,7 +699,7 @@ def find_coeffs(pa, pb):
     res = numpy.dot(numpy.linalg.inv(A.T * A) * A.T, B)
     return numpy.array(res).reshape(8)
 
-def updateSheet(member1, member2):
+def updateSheet(bonked: str, bonker: str):
     SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
     RANGE_NAME = 'Sheet1!A2:C'
 
@@ -694,22 +737,22 @@ def updateSheet(member1, member2):
     else:
         users = []
         for row in values:
-            users.append(row[0])
-            if row[0] == member2:
+            users.append(str(row[0]))
+            if str(row[0]) == bonker:
                 # Bonker -> Column B
                 # Bonked -> Column C
                 row[1] = int(row[1]) + 1
                 row[2] = int(row[2])
-            elif row[0] == member1:
+            elif str(row[0]) == bonked:
                 row[1] = int(row[1])
                 row[2] = int(row[2]) + 1
             else:
                 row[1] = int(row[1])
                 row[2] = int(row[2])
-        if member2 not in users:
-            values.append([member1, 1, 0])
-        if member1 not in users:
-            values.append([member2, 0, 1])
+        if bonker not in users:
+            values.append([bonker, 1, 0])
+        if bonked not in users:
+            values.append([bonked, 0, 1])
 
     # Write
     body = {'values': values}
@@ -846,6 +889,18 @@ def bonkCard(userName, bonkStats):
 
     return myImage
 
+def getEmojis():
+    server = bot.get_guild(nukeCode["misc"]["jannupals"])
+    emojis = [str(x) for x in server.emojis]
+    final = []
+    if emojis == None:
+        print("Emojis unavailable")
+        return None
+    for a in emojis:
+        if '<a:' in a:
+            final.append(a)
+    return final
+
 #============== ASYNC FUNCTIONS =======================
 async def sendPics(ctx, imglink, withText, loopNum = 0):
     async with aiohttp.ClientSession() as session:
@@ -919,12 +974,12 @@ async def setAvatarnIcon(member, myImage):
 #============== BOT LOOPS =============================
 @tasks.loop(seconds=10)
 async def downSpam(ctx):
-    link = allImages["down"][random.randint(0,len(downImages)-1)]
+    link = allImages["down"][random.randrange(0,len(downImages))]
     await sendPics(ctx, link, True, downSpam.current_loop)
 
 @tasks.loop(seconds=10)
 async def downSpamBot(target_channel):
-    link = allImages["down"][random.randint(0,len(downImages)-1)]
+    link = allImages["down"][random.randrange(0,len(downImages))]
     msgChannel = bot.get_channel(target_channel)
     await sendPics(msgChannel, link, True, downSpamBot.current_loop)
 
