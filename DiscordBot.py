@@ -24,7 +24,7 @@ bot.remove_command('help')
 TOKEN = 'IDHere'
 SPREADSHEET_ID = 'IDHere'
 
-miscID = {"jannupals"   : 673807232261160961, #server
+miscID = {"jannupals"   : IDHere, #server
           "botfest"     : IDHere, #channel
           "general"     : IDHere, #channel
           "deletedMsg"  : IDHere, #channel
@@ -159,12 +159,10 @@ async def on_connect():
     global respectBGImage
     global bonkedImage
     global bonkerImage
-    global jannuEmotes
     bonkcountBGImage = await getBackgroundImage(allImages["misc"][0])
     respectBGImage = await getBackgroundImage(allImages["misc"][1])
     bonkedImage = await getBackgroundImage(allImages["misc"][12])
     bonkerImage = await getBackgroundImage(allImages["misc"][13])
-    jannuEmotes = getEmojis()
     print('Resources loaded')
 
 @bot.event
@@ -241,8 +239,8 @@ async def help(ctx):
     if ctx.invoked_subcommand is None:
         embed = discord.Embed(colour = discord.Colour.teal(), description = "Type `}help [command]` for more help.\tE.g. `}help down`")
         embed.set_author(name='Help')
-        embed.add_field(name='Global Commands', value="`up` `checkImages` `truck` `bonk` `evade` `F` `votestart` `yeet`", inline=False)
-        embed.add_field(name='Jannupals-Exclusive Commands', value="`down` `birthday` `queue` `next` `clearqueue` `remove` `bonkcounter` `emote`", inline=False)
+        embed.add_field(name='Global Commands', value="`up` `checkImages` `truck` `bonk` `evade` `F` `votestart` `yeet` `emote`", inline=False)
+        embed.add_field(name='Jannupals-Exclusive Commands', value="`down` `birthday` `queue` `next` `clearqueue` `remove` `bonkcounter`", inline=False)
         embed.add_field(name='Keywords Bot will React to', value='`aaaaa` `riot` `cricket cricket` `raaid` `Praise the sun` `stickbug`', inline=False)
         embed.add_field(name='Other stuff', value='''[Source Code](https://github.com/shironats/Jannubot/blob/V2.90_07/11/DiscordBot.py)
                                                     [Jannubot invite link](https://discord.com/api/oauth2/authorize?client_id=731865140068089897&permissions=523328&scope=bot)''', inline=False)
@@ -355,7 +353,6 @@ async def bonkcounter(ctx):
 async def emote(ctx):
     embed = discord.Embed(colour = discord.Colour.teal(), description = 'Sends an animated emote\nWill send a list of animated emotes instead if argument is not given')
     embed.set_author(name='}emote [emote name]')
-    embed.add_field(name='Note', value='Only available to Jannupals members.', inline=False)
     embed.add_field(name='Aliases', value='`}emo`', inline=False)
     await ctx.send(embed=embed)
 
@@ -628,19 +625,26 @@ async def yeet(ctx, thing: str):
 @bot.command(aliases=['emo'])
 async def emote(ctx, emoteName: str = None):
     """Let the people use animated emotes"""
-    if(ctx.guild.id == nukeCode["misc"]["jannupals"]):
-        if emoteName != None:
-            check = False
-            for content in jannuEmotes:
-                if emoteName in content:
-                    check = True
-                    await ctx.send(content)
-            if not check:
-                await ctx.send('Emote not found')
-        else:
-            await ctx.send(" ".join(jannuEmotes))
+    emotesList = getEmojis(ctx.guild)
+##    if(ctx.guild.id == nukeCode["misc"]["jannupals"]):
+    if emoteName != None:
+        check = False
+        for content in emotesList:
+            if emoteName in content:
+                check = True
+                await ctx.send(content)
+        if not check:
+            await ctx.send('Emote not found')
     else:
-        await ctx.send("Sorry, permission denied.")
+        try:
+            await ctx.send(" ".join(emotesList))
+        except:
+            part1 = emotesList[:len(emotesList)//2]
+            part2 = emotesList[len(emotesList)//2:]
+            await ctx.send(" ".join(part1))
+            await ctx.send(" ".join(part2))
+##    else:
+##        await ctx.send("Sorry, permission denied.")
 
 @bot.command()
 async def test(ctx, func: str, imgID: int):
@@ -889,8 +893,7 @@ def bonkCard(userName, bonkStats):
 
     return myImage
 
-def getEmojis():
-    server = bot.get_guild(nukeCode["misc"]["jannupals"])
+def getEmojis(server):
     emojis = [str(x) for x in server.emojis]
     final = []
     if emojis == None:
