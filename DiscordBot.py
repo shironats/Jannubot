@@ -133,7 +133,7 @@ async def help(ctx, detail = "None"):
         embed.set_author(name='Help')
         embed.add_field(name='Commands', value="`down` `up` `checkImages` `truck` `bonk` `riot` `birthday` `TE`", inline=False)
         embed.add_field(name='Other Features', value='Send 5 "a"s\nSend "cricket cricket"\nSend "raaid"', inline=False)
-        embed.add_field(name='Source Code', value='https://github.com/shironats/Jannubot/blob/V2.00_17/09/DiscordBot.py', inline=False)
+        embed.add_field(name='Source Code', value='https://github.com/shironats/Jannubot/blob/V2.10_19/09/DiscordBot.py', inline=False)
     elif detail.lower() == 'down':
         embed = discord.Embed(colour = discord.Colour.teal(), description = 'Spams random "Buff is down" images')
         embed.set_author(name='}down')
@@ -148,7 +148,7 @@ async def help(ctx, detail = "None"):
         embed.set_author(name='}truck [@ someone]')
     elif detail.lower() == 'bonk':
         embed = discord.Embed(colour = discord.Colour.teal(), description = 'Bonks that person')
-        embed.set_author(name='}bonk [@ someone]')
+        embed.set_author(name='}bonk [@ someone] "reason for bonk (optional)"')
     elif detail.lower() == 'riot':
         embed = discord.Embed(colour = discord.Colour.teal(), description = 'Time to RIOT!!')
         embed.set_author(name='}riot')
@@ -216,16 +216,16 @@ async def truck(ctx, member: discord.Member):
     await sendSinglePic(ctx, link, embed)
 
 @bot.command()
-async def bonk(ctx, member: discord.Member):
+async def bonk(ctx, member: discord.Member, reason = "being bad"):
     """Bonks a member"""
     if ((member == bot.get_user(nukeCode["user"]["joe"])) or (member == bot.get_user(nukeCode["user"]["chinpo"]))):
         link = 'https://i.imgur.com/ZvUC0Eq.jpg'
     else:
         link = bonkImages[random.randint(0,len(bonkImages)-1)]
     if (member == bot.get_user(nukeCode["user"]["self"])):
-        embed = discord.Embed(colour = discord.Colour.teal(), description = "{0.mention} has been BONKED by {1.mention} for being bad.".format(ctx.message.author, member))
+        embed = discord.Embed(colour = discord.Colour.teal(), description = "{0.mention} has been BONKED by {1.mention} for {2}.".format(ctx.message.author, member, reason))
     else:
-        embed = discord.Embed(colour = discord.Colour.teal(), description = "{0.mention} has been BONKED by {1.mention} for being bad.".format(member, ctx.message.author))
+        embed = discord.Embed(colour = discord.Colour.teal(), description = "{0.mention} has been BONKED by {1.mention} for {2}.".format(member, ctx.message.author, reason))
     embed.set_image(url='attachment://img%s' %(link[27:]))
     await sendSinglePic(ctx, link, embed)
 
@@ -270,6 +270,10 @@ async def TE(ctx, raidcode: str):
                                                    bot.get_user(nukeCode["user"]["self"]).mention))
     else:
         await ctx.send("Sorry, permission denied")
+
+#@bot.command()
+#async def asd(ctx, emot: discord.Emoji):
+#    await ctx.send("%i"%(emot.id))
 
 #============== BOT LOOPS =============================
 @tasks.loop(seconds=2)
