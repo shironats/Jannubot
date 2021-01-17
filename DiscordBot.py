@@ -65,6 +65,11 @@ bonkImages = ['https://i.imgur.com/h2di9EZ.gif',
               'https://i.imgur.com/TELpsTl.jpg',
               'https://i.imgur.com/SA4uMHJ.jpg']
 
+evadeImages = ['https://i.imgur.com/ruwTwKI.png',
+               'https://i.imgur.com/HW6rPzB.png',
+               'https://i.imgur.com/uYd12fT.png',
+               'https://i.imgur.com/N8NCQWH.jpg']
+
 months = ['January','February','March','April','May','June','July',
           'August','September','October','November','December']
 
@@ -107,25 +112,27 @@ async def on_message(message):
 #send Screaming cat image
     if message.content.lower().endswith('aaaaa'):
         await sendSinglePic(message.channel, 'https://i.imgur.com/8n1zvzR.jpg')
-
 #send Jangkrik
-    if message.content.lower().find('cricket cricket') != -1:
+    if message.content.lower().endswith('cricket cricket') and message.content.lower().startswith('cricket cricket'):
         await sendSinglePic(message.channel, 'https://i.imgur.com/ors2jnC.gif')
 
+#send Mango memorial
+    if message.content.lower().find('mango') != -1:
+        await sendSinglePic(message.channel, 'https://i.imgur.com/EmrHMS7.jpg')
 #send RAID: SHADOW LEGENDS
-    if message.content.lower().find('ra') != -1:
+    elif message.content.lower().find('ra') != -1:
         if message.content.lower().find('aai') > message.content.lower().find('ra'):
             if message.content.lower().find('id') > message.content.lower().find('aai'):
                 await sendSinglePic(message.channel, 'https://i.imgur.com/eywxw5g.gif')
-
 #send Solaire
-    if message.content.lower().find('praise the sun') != -1:
+    elif message.content.lower().find('praise the sun') != -1:
         await sendSinglePic(message.channel, 'https://i.imgur.com/MYhwSHm.gif')
 
 #counters Uwaaru
     if message.content.find('<:uwaaru:755820728175034489>') != -1:
         await sendSinglePic(message.channel, 'https://i.imgur.com/GWiQcKX.jpg')
 
+#fixes accidental Europa bot mentions
     if len(message.mentions) > 0:
         if bot.get_user(nukeCode["user"]["europaBOT"]) in message.mentions:
             raidCode = message.content.split(" ")
@@ -140,9 +147,9 @@ async def help(ctx, detail = "None"):
     if detail.lower() == "none":
         embed = discord.Embed(colour = discord.Colour.teal(), description = "Type `}help [command]` for more help.\tE.g. `}help down`")
         embed.set_author(name='Help')
-        embed.add_field(name='Commands', value="`down` `up` `checkImages` `truck` `bonk` `riot` `birthday` `TE`", inline=False)
+        embed.add_field(name='Commands', value="`down` `up` `checkImages` `truck` `bonk` `evade` `riot` `birthday` `TE`", inline=False)
         embed.add_field(name='Other Features', value='Send 5 "a"s\nSend "cricket cricket"\nSend "raaid"', inline=False)
-        embed.add_field(name='Source Code', value='https://github.com/shironats/Jannubot/blob/V2.20_21/09/DiscordBot.py', inline=False)
+        embed.add_field(name='Source Code', value='https://github.com/shironats/Jannubot/blob/V2.30_24/09/DiscordBot.py', inline=False)
     elif detail.lower() == 'down':
         embed = discord.Embed(colour = discord.Colour.teal(), description = 'Spams random "Buff is down" images')
         embed.set_author(name='}down')
@@ -158,6 +165,9 @@ async def help(ctx, detail = "None"):
     elif detail.lower() == 'bonk':
         embed = discord.Embed(colour = discord.Colour.teal(), description = 'Bonks that person')
         embed.set_author(name='}bonk [@ someone] "reason for bonk (optional)"')
+    elif detail.lower() == 'evade':
+        embed = discord.Embed(colour = discord.Colour.teal(), description = 'Rolls for bonk evasion')
+        embed.set_author(name='}evade')
     elif detail.lower() == 'riot':
         embed = discord.Embed(colour = discord.Colour.teal(), description = 'Time to RIOT!!')
         embed.set_author(name='}riot')
@@ -239,6 +249,18 @@ async def bonk(ctx, member: discord.Member, reason = "being bad"):
     await sendSinglePic(ctx, link, embed)
 
 @bot.command()
+async def evade(ctx):
+    """Roll for evasion"""
+    if(random.randint(0,20) > 18):
+        link = evadeImages[random.randint(0,len(evadeImages)-1)]
+        embed = discord.Embed(colour = discord.Colour.teal(), description = "{0.mention} evades the bonk.".format(ctx.message.author))
+    else:
+        link = bonkImages[random.randint(0,len(bonkImages)-1)]
+        embed = discord.Embed(colour = discord.Colour.teal(), description = "{0.mention} is BONKED again by {1.mention} for trying to evade the bonk.".format(ctx.message.author, bot.user))
+    embed.set_image(url='attachment://img%s' %(link[27:]))
+    await sendSinglePic(ctx, link, embed)
+
+@bot.command()
 async def riot(ctx):
     """Time to RIOT!!"""
     await sendSinglePic(ctx, 'https://i.imgur.com/fyG8NZk.png')
@@ -285,12 +307,12 @@ async def TE(ctx, raidcode: str):
 #    await ctx.send("%i"%(emot.id))
 
 #============== BOT LOOPS =============================
-@tasks.loop(seconds=2)
+@tasks.loop(seconds=10)
 async def downSpam(ctx):
     link = downImages[random.randint(0,len(downImages)-1)]
     await sendPics(ctx, link, True, downSpam.current_loop)
 
-@tasks.loop(seconds=2)
+@tasks.loop(seconds=10)
 async def downSpamBot(target_channel):
     link = downImages[random.randint(0,len(downImages)-1)]
     msgChannel = bot.get_channel(target_channel)
