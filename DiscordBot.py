@@ -41,6 +41,7 @@ userID = {"haipa"       : IDHere,
           "nadekoBOT"   : IDHere,
           "jannuBOT"    : IDHere,
           "europaBOT"   : IDHere,
+          "groovyBOT"   : IDHere,
           "zeo"         : IDHere,
           "mango"       : IDHere,
           "nana"        : IDHere,
@@ -53,6 +54,7 @@ userID = {"haipa"       : IDHere,
           "alwing"      : IDHere,
           "malsi"       : IDHere,
           "islam"       : IDHere,
+          "invar"       : IDHere,
           }
 
 nukeCode = {"user"      : userID,
@@ -140,7 +142,7 @@ emojis = {"checkmark"   : '✅',
           }
 
 ejected = """.      　。　　　•　    　ﾟ　　。　ﾟ
-　　.　　　.　　　  　　.　　　　　。　　
+　　.　　　.　　　  　　.　　　　　。
 　.　　      。　        ඞ   。　    .    •
   •              %s was %s%s 。　.
 　 　　。　　 　　　　ﾟ　　　.　    　　　。
@@ -175,27 +177,32 @@ async def on_connect():
 async def on_ready():
     print('We have logged in as {0.user}'.format(bot))
     dev = bot.get_user(nukeCode["user"]["self"])
-    await dev.send('I have logged on at {0}.'.format(datetime.datetime.now(pytz.timezone('Asia/Jakarta'))))    
+    await dev.send('I have logged on at {0}.'.format(datetime.datetime.now(pytz.timezone('Asia/Jakarta'))))
 
 @bot.event
 async def on_message_delete(message):
     if message.guild.id == nukeCode["misc"]["jannupals"]:
-        msgChannel = bot.get_channel(nukeCode["misc"]["deletedMsg"])
-        embed = discord.Embed(colour = discord.Colour.teal(),
-                              description='Message sent by {0.mention} deleted in {1.mention}\n\n{2}'.format(message.author, message.channel, message.content))
-        embed.set_author(name=str(message.author), icon_url=message.author.avatar_url)
-        embed.set_footer(text=datetime.datetime.now(pytz.timezone('Asia/Tokyo')))
-        if len(message.attachments) > 0:
-            embed.set_image(url=message.attachments[0].proxy_url)
+        # disregard messages deleted by groovy music bot
+        if message.author != bot.get_user(nukeCode["user"]["groovyBOT"]):
+            # sends the deleted message back to deleted messages channel w/ timestamp
+            msgChannel = bot.get_channel(nukeCode["misc"]["deletedMsg"])
+            embed = discord.Embed(colour = discord.Colour.teal(),
+                                  description='Message sent by {0.mention} deleted in {1.mention}\n\n{2}'.format(message.author, message.channel, message.content))
+            embed.set_author(name=str(message.author), icon_url=message.author.avatar_url)
+            embed.set_footer(text=datetime.datetime.now(pytz.timezone('Asia/Tokyo')))
+            if len(message.attachments) > 0:
+                embed.set_image(url=message.attachments[0].proxy_url)
 
-        await msgChannel.send(embed=embed)
+            await msgChannel.send(embed=embed)
 
 @bot.event
 async def on_message(message):
     nadeko = bot.get_user(nukeCode["user"]["nadekoBOT"])
 
+    # disregard messages from itself
     if message.author == bot.user:
         return
+    # nadeko-triggered }down
     elif message.author == nadeko:
         if message.content.startswith('}down'):
             if message.content.endswith('general'):
@@ -203,15 +210,13 @@ async def on_message(message):
             else:
                 downSpamBot.start(nukeCode["misc"]["botfest"])
 
-#send Waluigi
-##    if message.content.lower().endswith('waaaa'):
-##        await message.channel.send(allImages["misc"][])
 #send Screaming cat image
     if message.content.lower().endswith('aaaaa'):
         await message.channel.send(allImages["misc"][2])
 #send Jangkrik
     elif message.content.lower().endswith('cricket cricket') and message.content.lower().startswith('cricket cricket'):
         await message.channel.send(allImages["misc"][3])
+
 #send Riot pic
     if message.content.lower().find('riot') != -1:
         await message.channel.send(allImages["misc"][4])
@@ -249,7 +254,7 @@ async def help(ctx):
     if ctx.invoked_subcommand is None:
         embed = discord.Embed(colour = discord.Colour.teal(), description = "Type `}help [command]` for more help.\tE.g. `}help down`")
         embed.set_author(name='Help')
-        embed.add_field(name='Global Commands', value="`up` `checkImages` `truck` `bonk` `evade` `F` `votestart` `yeet` `emote` `baka` `time`", inline=False)
+        embed.add_field(name='Global Commands', value="`up` `checkImages` `truck` `bonk` `evade` `F` `votestart` `yeet` `emote` `baka` `UStime`", inline=False)
         embed.add_field(name='Jannupals-Exclusive Commands', value="`down` `bday` `birthday` `queue` `next` `clearqueue` `remove` `bonkcounter` `cleaning`", inline=False)
         embed.add_field(name='Keywords Bot will React to', value='`aaaaa` `riot` `cricket cricket` `raaid` `Praise the sun` `stickbug`', inline=False)
         embed.add_field(name='Other stuff', value='''[Source Code](https://github.com/shironats/Jannubot/blob/V3.00_12/12/DiscordBot.py)
@@ -380,13 +385,12 @@ async def baka(ctx):
     await ctx.send(embed=embed)
 
 @help.command()
-async def time(ctx):
+async def UStime(ctx):
     embed = discord.Embed(colour = discord.Colour.teal(), description = 'Converts given JST time to US times')
     embed.set_author(name='}time [####]')
     await ctx.send(embed=embed)
 
 #============== BOT COMMANDS ==============================
-
 @bot.command()
 async def down(ctx):
     """Sends a random 'Buff is down' image"""
@@ -397,7 +401,7 @@ async def down(ctx):
 
 @bot.command()
 async def up(ctx):
-    """Sets timer for next buff reactivation"""
+    """Stops 'Buff is down' image spam"""
     downSpam.cancel()
     downSpamBot.cancel()
     link = allImages["up"][random.randrange(0,len(upImages))]
@@ -405,15 +409,16 @@ async def up(ctx):
 
 @bot.command()
 async def checkImages(ctx):
-    """Check }down images"""
+    """Checks all images"""
     for imgList in allImages:
         for iCounter in range(len(allImages[imgList])):
             link = allImages[imgList][iCounter]
+            # solves problem with gifs not loading properly if sent directly
             if 'tenor' in link or 'gif' not in link:
                 await ctx.send(link)
             else:
                 await sendSinglePic(ctx, link)
- 
+
 @bot.command(aliases=['isekai'])
 async def truck(ctx, member: discord.Member):
     """Sends a truck over"""
@@ -425,12 +430,15 @@ async def truck(ctx, member: discord.Member):
 @bot.command()
 async def bonk(ctx, member: discord.Member, reason = "being bad"):
     """Bonks a member"""
+    # use special bonk image for joe and chinpo
     if ((member == bot.get_user(nukeCode["user"]["joe"])) or (member == bot.get_user(nukeCode["user"]["chinpo"]))):
         link = allImages["misc"][10]
     else:
         link = allImages["bonk"][random.randrange(0,len(bonkImages))]
 
-    if ((member == bot.get_user(nukeCode["user"]["self"])) or (ctx.author.id == bot.get_user(nukeCode["user"]["malsi"])) or (ctx.author.id == bot.get_user(nukeCode["user"]["islam"]))):
+    #returns bonk to sender if targeted at dev
+    if ((member == bot.get_user(nukeCode["user"]["self"])) or (member == bot.get_user(nukeCode["user"]["invar"])) 
+    or (ctx.author.id == nukeCode["user"]["malsi"]) or (ctx.author.id == nukeCode["user"]["islam"])):
         embed = discord.Embed(colour = discord.Colour.teal(), description = "{0.mention} has been BONKED by {1.mention} for {2}.".format(ctx.message.author, member, reason))
         memberIDs = (str(ctx.author.id), str(member.id))
     else:
@@ -440,6 +448,7 @@ async def bonk(ctx, member: discord.Member, reason = "being bad"):
     embed.set_image(url='attachment://img%s' %(link[link.find(".",link.find(".com")+1):]))
     await sendSinglePic(ctx, link, embed)
     if(ctx.guild.id == nukeCode["misc"]["jannupals"]):
+        # send a message to dev if bonk sheet is not updated
         if not updateSheet(memberIDs[0], memberIDs[1]):
             dev = bot.get_user(nukeCode["user"]["self"])
             await dev.send('Failed to update sheet')
@@ -471,7 +480,8 @@ async def bonkcounter(ctx, member: discord.Member = None):
 @bot.command()
 async def evade(ctx):
     """Roll for evasion"""
-    if(random.randint(1,20) > 18):
+    # evade chance of 2/20
+    if((random.randint(1,20) > 15) or (ctx.author.id == nukeCode["user"]["invar"])):
         link = allImages["evade"][random.randrange(0,len(evadeImages))]
         embed = discord.Embed(colour = discord.Colour.teal(), description = "{0.mention} evades the bonk.".format(ctx.message.author))
     else:
@@ -519,30 +529,21 @@ async def F(ctx, member: discord.Member):
     bottomLeft = (990, 551)
     bottomRight = (1112, 540)
 
-##    for j in range(imgHeight):
-##        for i in range(imgWidth):
-##            myTuple = myImage.getpixel((i, j))
-##            if myTuple[0] == 255 and myTuple[1] == 255 and myTuple[2] == 255:
-##                if i > topRight[0] and j <= topRight[1]+1:
-##                    topRight[0], topRight[1] = i, j
-##                if i > bottomRight[0]:
-##                    bottomRight[0], bottomRight[1] = i, j
-##                if j > bottomLeft[1]:
-##                    bottomLeft[0], bottomLeft[1] = i, j
-##    await ctx.send(str(topLeft)+"\t"+str(topRight)+"\n\n"+str(bottomLeft)+"\t"+str(bottomRight))
-
+    # loads user profile picture and pastes it on a new image layer
     avatarAsset = member.avatar_url_as(format='png', size=256)
     bufferAvatar = io.BytesIO(await avatarAsset.read())
     avatarImage = Image.open(bufferAvatar)
     avatarImage = avatarImage.resize((avatarSize,avatarSize))
     avatarLayer = Image.new('RGBA', (imgWidth, imgHeight))
     avatarLayer.paste(avatarImage, topLeft)
-    
+
+    # finds perspective coefficients and transforms image to desired perspective
     coeffs = find_coeffs(
         [topLeft, topRight, bottomRight, bottomLeft],
         [topLeft, (topLeft[0]+avatarSize, topLeft[1]), (topLeft[0]+avatarSize, topLeft[1]+avatarSize), (topLeft[0], topLeft[1]+avatarSize)])
     avatarLayer = avatarLayer.transform((imgWidth, imgHeight), Image.PERSPECTIVE, coeffs)
-    
+
+    # pastes profile picture layer on image
     myImage = Image.alpha_composite(myImage, avatarLayer)
     myImage = myImage.crop((imgWidth/3, topLeft[1]-50, imgWidth, imgHeight))
     myImage = myImage.convert("RGB")
@@ -560,6 +561,7 @@ async def F(ctx, member: discord.Member):
 async def queue(ctx, raidName: str = "None"):
     """Add raid to queue"""
     if(ctx.guild.id == nukeCode["misc"]["jannupals"]):
+        # appends raid entry to the queue
         if(raidName != "None"):
             raidQueue.append("%s by %s" %(raidName, ctx.message.author.mention))
             embed = discord.Embed(colour = discord.Colour.teal(), description = "Queued %s [%s]" %(raidName, ctx.message.author.mention))
@@ -572,14 +574,16 @@ async def queue(ctx, raidName: str = "None"):
                 for x in range(len(raidQueue)):
                     if myCurrentQueue[0] == x:
                         qString = qString + "\t⬐ current raid" + newLine
+                    # for members with nicknames
                     if(raidQueue[x].find("<@!") != -1):
                         qMember = await bot.get_guild(nukeCode["misc"]["jannupals"]).fetch_member(int(raidQueue[x][raidQueue[x].find("<@!")+3:raidQueue[x].find(">", raidQueue[x].find("<@!"))]))
                         qUser = qMember.display_name
                         qString = qString + str(x+1) + ") " + raidQueue[x][:raidQueue[x].find("<@!")] + qUser + newLine
+                    # for members without nicknames
                     else:
                         qMember = await bot.get_guild(nukeCode["misc"]["jannupals"]).fetch_member(int(raidQueue[x][raidQueue[x].find("<@")+2:raidQueue[x].find(">", raidQueue[x].find("<@"))]))
                         qUser = qMember.display_name
-                        qString = qString + str(x+1) + ") " + raidQueue[x][:raidQueue[x].find("<@")] + qUser + newLine                            
+                        qString = qString + str(x+1) + ") " + raidQueue[x][:raidQueue[x].find("<@")] + qUser + newLine
                     if myCurrentQueue[0] == x:
                         qString = qString + "\t⬑ current raid" + newLine
                 qString += "```"
@@ -591,9 +595,11 @@ async def queue(ctx, raidName: str = "None"):
 async def next(ctx):
     """Next raid up"""
     if(ctx.guild.id == nukeCode["misc"]["jannupals"]):
+        # empty queue
         if len(raidQueue) == 0:
             embed = discord.Embed(colour = discord.Colour.teal(), description = "Please fill with `}queue`")
             embed.set_author(name = "Queue is empty")
+        # reached last queue
         elif myCurrentQueue[0] == (len(raidQueue)-1):
             embed = discord.Embed(colour = discord.Colour.teal(), description = "Please add more with `}queue` or clear with `}clearqueue`")
             embed.set_author(name = "You've reached the end of the queue")
@@ -642,8 +648,10 @@ async def votestart(ctx, member: discord.Member):
     await myMessage.add_reaction(emojis["crossmark"])
     time.sleep(15)
     myMessage = await ctx.fetch_message(myMessage.id)
+    # more 'yes' than 'no'
     if myMessage.reactions[0].count > myMessage.reactions[1].count:
         await ctx.send(ejected %(member.display_name, "ejected", "."))
+    # more 'no' than 'yes'
     else:
         await ctx.send(ejected %("No one", "ejected", ". (Skipped)"))
 
@@ -657,6 +665,7 @@ async def emote(ctx, emoteName: str = None):
     """Let the people use animated emotes"""
     emotesList = getEmojis(ctx.guild, True)
     if emoteName != None:
+        # create and initialize variable 'check'
         check = False
         for content in emotesList:
             if emoteName.lower() in content.lower():
@@ -683,30 +692,21 @@ async def baka(ctx, member: discord.Member):
     bottomLeft = (352, 609)
     bottomRight = (597, 580)
 
-##    for j in range(imgHeight):
-##        for i in range(imgWidth):
-##            myTuple = myImage.getpixel((i, j))
-##            if myTuple[0] == 0 and myTuple[1] == 13 and myTuple[2] == 255:
-##                if i < topLeft[0]:
-##                    topLeft[0], topLeft[1] = i, j
-##                if i > bottomRight[0]:
-##                    bottomRight[0], bottomRight[1] = i, j
-##                if j > bottomLeft[1]:
-##                    bottomLeft[0], bottomLeft[1] = i, j
-##    await ctx.send(str(topLeft)+"\t"+str(topRight)+"\n\n"+str(bottomLeft)+"\t"+str(bottomRight))
-
+    # loads user profile picture and pastes it on a new image layer
     avatarAsset = member.avatar_url_as(format='png', size=256)
     bufferAvatar = io.BytesIO(await avatarAsset.read())
     avatarImage = Image.open(bufferAvatar)
     avatarImage = avatarImage.resize((avatarSize,avatarSize))
     avatarLayer = Image.new('RGBA', (imgWidth, imgHeight))
     avatarLayer.paste(avatarImage, topLeft)
-    
+
+    # finds perspective coefficients and transforms image to desired perspective
     coeffs = find_coeffs(
         [topLeft, topRight, bottomRight, bottomLeft],
         [topLeft, (topLeft[0]+avatarSize, topLeft[1]), (topLeft[0]+avatarSize, topLeft[1]+avatarSize), (topLeft[0], topLeft[1]+avatarSize)])
     avatarLayer = avatarLayer.transform((imgWidth, imgHeight), Image.PERSPECTIVE, coeffs)
-    
+
+    # pastes profile picture layer on image
     myImage = Image.alpha_composite(myImage, avatarLayer)
     myImage = myImage.convert("RGB")
 
@@ -714,7 +714,7 @@ async def baka(ctx, member: discord.Member):
     myImage.save(buffer_output, format='JPEG')
     buffer_output.seek(0)
 
-    embed = discord.Embed(colour = discord.Colour.teal(), description = "DAME DA NE\nDAME YO\nDAME NANOYO".format(ctx.message.author, member))
+    embed = discord.Embed(colour = discord.Colour.teal(), description = "だめだね！\nだめよ！\nだめなのよ！！".format(ctx.message.author, member))
     embed.set_image(url='attachment://img.jpeg')
     myMessage = await ctx.send(file=discord.File(buffer_output, "img.jpeg"), embed = embed)
     await myMessage.add_reaction(emojis["catcry"])
@@ -752,41 +752,43 @@ async def cleaning(ctx):
         await ctx.send("Sorry, permission denied.")
 
 @bot.command()
-async def time(ctx, jst: str):
+async def UStime(ctx, jst: str = "now"):
     """Converts JST to PST/MST/CST/EST"""
     myFlag = False
     if (jst == 'now') or (len(jst) == 4):
-        myFlag = True
-    else:
-        try:
-            int(jst)
-        except:
-            myFlag = False
-        else:
-            myFlag = True
-        
-    if myFlag:
         UTCTime = None
+        embed = discord.Embed(colour = discord.Colour.teal())
         if jst == 'now':
             UTCTime = datetime.datetime.now(pytz.timezone('UTC'))
+            embed.set_author(name='Now')
         else:
             UTCh = int(jst[:2]) - 9
             UTCm = int(jst[2:])
-            currentTime = datetime.datetime.utcnow()
-            UTCTime = datetime.datetime(currentTime.year, currentTime.month, currentTime.day,
-                                        UTCh, UTCm, 0, 0,
-                                        pytz.timezone('UTC'))
-        PSTTime = UTCTime.astimezone(pytz.timezone('America/Los_Angeles'))
-        MSTTime = UTCTime.astimezone(pytz.timezone('America/Denver'))
-        CSTTime = UTCTime.astimezone(pytz.timezone('America/Chicago'))
-        ESTTime = UTCTime.astimezone(pytz.timezone('America/New_York'))
-        embed = discord.Embed(colour = discord.Colour.teal())
-        embed.set_author(name='%s JST'%(jst))
-        embed.add_field(name='PST', value=PSTTime.strftime("%X"), inline=False)
-        embed.add_field(name='MST', value=MSTTime.strftime("%X"), inline=False)
-        embed.add_field(name='CST', value=CSTTime.strftime("%X"), inline=False)
-        embed.add_field(name='EST', value=ESTTime.strftime("%X"), inline=False)
-        await ctx.send(embed=embed)
+            # fixes negative hours if entered time is earlier than 9am
+            if UTCh < 0:
+                UTCh = UTCh + 24
+            # checks for 60+ minutes
+            try:
+                currentTime = datetime.datetime.utcnow()
+                UTCTime = datetime.datetime(currentTime.year, currentTime.month, currentTime.day,
+                                            UTCh, UTCm, 0, 0,
+                                            pytz.timezone('UTC'))
+                embed.set_author(name='%s JST'%(jst))
+            except:
+                await UStime(ctx, "wrong")
+            else:
+                # converts requested time to specified timezones
+                HSTTime = UTCTime.astimezone(pytz.timezone('US/Hawaii'))
+                PSTTime = UTCTime.astimezone(pytz.timezone('America/Los_Angeles'))
+                MSTTime = UTCTime.astimezone(pytz.timezone('America/Denver'))
+                CSTTime = UTCTime.astimezone(pytz.timezone('America/Chicago'))
+                ESTTime = UTCTime.astimezone(pytz.timezone('America/New_York'))
+                embed.add_field(name='HST', value=HSTTime.strftime("%X"), inline=False)
+                embed.add_field(name='PST', value=PSTTime.strftime("%X"), inline=False)
+                embed.add_field(name='MST', value=MSTTime.strftime("%X"), inline=False)
+                embed.add_field(name='CST', value=CSTTime.strftime("%X"), inline=False)
+                embed.add_field(name='EST', value=ESTTime.strftime("%X"), inline=False)
+                await ctx.send(embed=embed)
     else:
         await ctx.send("Please enter JST time in 2400 format or 'now'")
 
@@ -798,6 +800,26 @@ async def asd(ctx):
     emojis2 = emojis[len(emojis)//2:-1]
     await ctx.send(" ".join(emojis1))
     await ctx.send(" ".join(emojis2))
+
+##@bot.command()
+##async def aaa(ctx, msgID: int):
+##    msg = await ctx.fetch_message(msgID)
+##    print(msg.content)
+##    embed = discord.Embed(colour = discord.Colour.teal(), description = msg.content)
+##    await ctx.send(embed=embed)
+
+##    for j in range(imgHeight):
+##        for i in range(imgWidth):
+##            myTuple = myImage.getpixel((i, j))
+##            if myTuple[0] == 255 and myTuple[1] == 255 and myTuple[2] == 255:
+##                if i > topRight[0] and j <= topRight[1]+1:
+##                    topRight[0], topRight[1] = i, j
+##                if i > bottomRight[0]:
+##                    bottomRight[0], bottomRight[1] = i, j
+##                if j > bottomLeft[1]:
+##                    bottomLeft[0], bottomLeft[1] = i, j
+##    await ctx.send(str(topLeft)+"\t"+str(topRight)+"\n\n"+str(bottomLeft)+"\t"+str(bottomRight))
+
 
 #============== FUNCTIONS==============================
 def getBirthdays():
@@ -850,6 +872,7 @@ def addBirthdays(ctx, date: int, month: int):
     textfile.write_text(fullText)
 
 def find_coeffs(pa, pb):
+    # https://stackoverflow.com/questions/14177744/
     matrix = []
     for p1, p2 in zip(pa, pb):
         matrix.append([p1[0], p1[1], 1, 0, 0, 0, -p2[0]*p1[0], -p2[0]*p1[1]])
@@ -900,14 +923,19 @@ def updateSheet(bonked: str, bonker: str):
         users = []
         for row in values:
             users.append(str(row[0]))
+            # Bonker -> Column B
+            # Bonked -> Column C
+            # If user is the bonker
             if str(row[0]) == bonker:
-                # Bonker -> Column B
-                # Bonked -> Column C
                 row[1] = int(row[1]) + 1
                 row[2] = int(row[2])
+            # If user is the bonked
             elif str(row[0]) == bonked:
                 row[1] = int(row[1])
                 row[2] = int(row[2]) + 1
+            # Even if user is not both, we rewrite the data
+            # Because otherwise there is data type mismatch
+            # And this results in existing entries disregarded, causing duplicate entries
             else:
                 row[1] = int(row[1])
                 row[2] = int(row[2])
@@ -963,9 +991,9 @@ def readSheet(memberID):
         users = []
         for row in values:
             users.append(row[0])
+            # Bonker -> Column B
+            # Bonked -> Column C
             if row[0] == memberID:
-                # Bonker -> Column B
-                # Bonked -> Column C
                 stats = (int(row[1]), int(row[2]))
                 return stats
         if memberID not in users:
@@ -1022,6 +1050,7 @@ def bonkCard(userName, bonkStats):
         print('Using backup font')
     imgFont = ImageFont.truetype(fontFile, nameSize)
     numFont = ImageFont.truetype(fontFile, numSize)
+
     #adjust font size
     while (imgFont.getsize(imgText)[0] < (rectWidth - avatarSize - 100)) and (imgFont.getsize(imgText)[1] < (rectHeight - 30)):
         nameSize += 1
@@ -1033,6 +1062,7 @@ def bonkCard(userName, bonkStats):
         numFont = ImageFont.truetype(fontFile, numSize)
     numSize -= 1
     numFont = ImageFont.truetype(fontFile, numSize)
+
     #set text position and place text
     imgText_width, imgText_height = drawImg.textsize(imgText, font=imgFont)
     textX = (rectWidth - imgText_width + avatarSize)//2 + rectLeft
@@ -1117,7 +1147,7 @@ async def setAvatarnIcon(member, myImage):
     bonkedRectTop = rectBottom + 10
     bonkerRectLeft = imgWidth // 2 + 5
     bonkerRectTop = rectBottom + 10
-    
+
     #get user avatar image
     avatarAsset = member.avatar_url_as(format='png', size=256)
     bufferAvatar = io.BytesIO(await avatarAsset.read())
