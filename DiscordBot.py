@@ -4,18 +4,71 @@ import os
 import io
 import aiohttp
 import random
+from pathlib import Path
 
 bot = commands.Bot(command_prefix='}')
 bot.remove_command('help')
-botfest = blahblahblah #botfest
-general = blahblahblah #general
-danchou = '<@&blahblahblah>'
-officers = '<@&blahblahblah>'
-haipa = blahblahblah
-self = blahblahblah
-sol = blahblahblah
-nadekoBOT = blahblahblah
-jannuBOT = blahblahblah
+
+#============== CHANNEL AND USER ID ==============
+botfest = nananana #botfest
+general = nananana #general
+danchou = '<@&nananana>'
+officers = '<@&nananana>'
+twinele = '<@&nananana>'
+haipa = nananana
+self = nananana
+sol = nananana
+nadekoBOT = nananana
+jannuBOT = nananana
+zeo = nananana
+mango = nananana
+nana = nananana
+bunny = nananana
+wayne = nananana
+yonji = nananana
+
+#============== IMAGES & GLOBAL VARIABLE =========
+downImages = ['https://i.imgur.com/q4H83FZ.jpg',
+              'https://i.imgur.com/h2V3SaO.jpg',
+              'https://i.imgur.com/SDRmkhD.jpg',
+              'https://i.imgur.com/uJp4D7C.jpg',
+              'https://i.imgur.com/agYqbci.jpg',
+              'https://i.imgur.com/g5WXEY7.gif',
+              'https://i.imgur.com/Jo6Rvsi.jpg']
+
+upImages = ['https://i.imgur.com/ueO6Lrn.jpg',
+            'https://i.imgur.com/mVF83k7.jpg']
+
+truckImages = ['https://i.imgur.com/XMG3BXZ.gif',
+               'https://i.imgur.com/xYM56uZ.gif',
+               'https://i.imgur.com/oRMKp3k.gif']
+
+bonkImages = ['https://i.imgur.com/h2di9EZ.gif',
+              'https://i.imgur.com/yXhqh1d.gif',
+              'https://i.imgur.com/fmZY9dV.gif',
+              'https://i.imgur.com/VkYz0vr.gif',
+              'https://i.imgur.com/ngj9zmN.jpg',
+              'https://i.imgur.com/EZ56Cbz.jpg',
+              'https://i.imgur.com/HQFCiLI.jpg']
+
+months = ['January','February','March','April','May','June','July',
+          'August','September','October','November','December']
+
+birthdays = {months[0]:'None (yet)',
+             months[1]:'None (yet)',
+             months[2]:'None (yet)',
+             months[3]:'None (yet)',
+             months[4]:'None (yet)',
+             months[5]:'None (yet)',
+             months[6]:'None (yet)',
+             months[7]:'None (yet)',
+             months[8]:'None (yet)',
+             months[9]:'None (yet)',
+             months[10]:'None (yet)',
+             months[11]:'None (yet)'}
+
+data_folder = Path("DiscordBot_source/")
+newLine = "\n"
 
 #============== BOT EVENTS ================================
 @bot.event
@@ -58,17 +111,37 @@ async def on_message(message):
 
 #============== BOT COMMANDS ==============================
 @bot.command(pass_context = True)
-async def help(ctx):
-    embed = discord.Embed(colour = discord.Colour.teal())
-    embed.set_author(name='Help')
-    embed.add_field(name='}down', value='Spams random "Buff is down" images', inline=False)
-    embed.add_field(name='}up', value='Sends a random "Buff is up" image', inline=False)
-    embed.add_field(name='}checkImages', value='Check all images', inline=False)
-    embed.add_field(name='}truck [@ someone]', value='Sends a truck after that person', inline=False)
-    embed.add_field(name='}bonk [@ someone]', value='Bonks that person', inline=False)
-    embed.add_field(name='}riot', value='Time to RIOT!!', inline=False)
-    embed.add_field(name='Other Features', value='Send 5 "a"s\nSend "cricket cricket"\nSend "raaid"', inline=False)
-    embed.add_field(name='Source Code', value='https://github.com/shironats/Buffbot/blob/Update-26/08/DiscordBot.py', inline=False)
+async def help(ctx, detail = "None"):
+    if detail.lower() == "none":
+        embed = discord.Embed(colour = discord.Colour.teal(), description = "Type `}help [command]` for more help.\tE.g. `}help down`")
+        embed.set_author(name='Help')
+        embed.add_field(name='Commands', value="`down` `up` `checkImages` `truck` `bonk` `riot` `birthday` `TE`", inline=False)
+        embed.add_field(name='Other Features', value='Send 5 "a"s\nSend "cricket cricket"\nSend "raaid"', inline=False)
+        embed.add_field(name='Source Code', value='https://github.com/shironats/Buffbot/blob/Update-01/09/DiscordBot.py', inline=False)
+    elif detail.lower() == 'down':
+        embed = discord.Embed(colour = discord.Colour.teal(), description = 'Spams random "Buff is down" images')
+        embed.set_author(name='}down')
+    elif detail.lower() == 'up':
+        embed = discord.Embed(colour = discord.Colour.teal(), description = 'Spams random "Buff is up" image')
+        embed.set_author(name='}up')
+    elif detail.lower() == 'checkimages':
+        embed = discord.Embed(colour = discord.Colour.teal(), description = 'Check all images')
+        embed.set_author(name='}checkImages')
+    elif detail.lower() == 'truck':
+        embed = discord.Embed(colour = discord.Colour.teal(), description = 'Sends a truck after that person')
+        embed.set_author(name='}truck [@ someone]')
+    elif detail.lower() == 'bonk':
+        embed = discord.Embed(colour = discord.Colour.teal(), description = 'Bonks that person')
+        embed.set_author(name='}bonk [@ someone]')
+    elif detail.lower() == 'riot':
+        embed = discord.Embed(colour = discord.Colour.teal(), description = 'Time to RIOT!!')
+        embed.set_author(name='}riot')
+    elif detail.lower() == 'birthday':
+        embed = discord.Embed(colour = discord.Colour.teal(), description = 'Sends your birthday to my txt file')
+        embed.set_author(name='}birthday [date] [month]')
+    elif detail.lower() == 'te':
+        embed = discord.Embed(colour = discord.Colour.teal(), description = 'Calls people subscribed to DA TE Services')
+        embed.set_author(name='}TE [code]')
     await ctx.send(embed=embed)
 
 @bot.command()
@@ -153,6 +226,19 @@ async def bday(ctx):
         embed.add_field(name=months[iCounter], value=birthdays[months[iCounter]])
     await ctx.send(embed=embed)
 
+@bot.command()
+async def birthday(ctx, date: int, month: int):
+    """Set Birthday"""
+    #make it so non-jannupals discord cannot enter
+    addBirthdays(ctx, date, month)
+    getBirthdays()
+    await ctx.send("Your birthday has been added to DA's database")
+
+@bot.command()
+async def TE(ctx, raidcode: str):
+    """Call TE Peeps"""
+    await ctx.send("%s %s %s %s %s %s %s %s %s" %(twinele,raidcode,bot.get_user(zeo).mention,bot.get_user(mango).mention,bot.get_user(nana).mention,bot.get_user(bunny).mention,bot.get_user(wayne).mention,bot.get_user(yonji).mention,bot.get_user(self).mention))
+
 #============== BOT LOOPS =============================
 @tasks.loop(seconds=2)
 async def downSpam(ctx):
@@ -165,63 +251,44 @@ async def downSpamBot(target_channel):
     msgChannel = bot.get_channel(target_channel)
     await sendPics(msgChannel, link, True, downSpamBot.current_loop)
 
-#============== IMAGES ============================
-downImages = ['https://i.imgur.com/q4H83FZ.jpg',
-              'https://i.imgur.com/h2V3SaO.jpg',
-              'https://i.imgur.com/SDRmkhD.jpg',
-              'https://i.imgur.com/uJp4D7C.jpg',
-              'https://i.imgur.com/agYqbci.jpg',
-              'https://i.imgur.com/g5WXEY7.gif',
-              'https://i.imgur.com/Jo6Rvsi.jpg']
-
-upImages = ['https://i.imgur.com/ueO6Lrn.jpg',
-            'https://i.imgur.com/mVF83k7.jpg']
-
-truckImages = ['https://i.imgur.com/XMG3BXZ.gif',
-               'https://i.imgur.com/xYM56uZ.gif',
-               'https://i.imgur.com/oRMKp3k.gif']
-
-bonkImages = ['https://i.imgur.com/h2di9EZ.gif',
-              'https://i.imgur.com/yXhqh1d.gif',
-              'https://i.imgur.com/fmZY9dV.gif',
-              'https://i.imgur.com/VkYz0vr.gif',
-              'https://i.imgur.com/ngj9zmN.jpg',
-              'https://i.imgur.com/EZ56Cbz.jpg',
-              'https://i.imgur.com/HQFCiLI.jpg']
-
-months = ['January','February','March','April','May','June',
-          'July','August','September','October','November','December']
-
-birthdays = {months[0]:'None (yet)',
-             months[1]:'None (yet)',
-             months[2]:'None (yet)',
-             months[3]:'None (yet)',
-             months[4]:'None (yet)',
-             months[5]:'None (yet)',
-             months[6]:'None (yet)',
-             months[7]:'None (yet)',
-             months[8]:'None (yet)',
-             months[9]:'None (yet)',
-             months[10]:'None (yet)',
-             months[11]:'None (yet)'}
-
 #============== FUNCTIONS==============================
 def getBirthdays():
-    newLine = "\n"
     currentMonth = ""
-    textfile = open(os.getcwd()+"/DiscordBot_source/JannupalsBirthdays.txt")
-    for line in textfile:
-        line = line.rstrip(newLine)
-        if line in months:
-            currentMonth = line
+    textfile = data_folder/"JannupalsBirthdays.txt"
+    lines = textfile.read_text().split("\n")
+    for iCounter in range(len(lines)):
+        if lines[iCounter] in months:
+            currentMonth = lines[iCounter]
         else:
             if birthdays[currentMonth] == 'None (yet)':
-                birthdays[currentMonth] = line
+                birthdays[currentMonth] = lines[iCounter]
             else:
                 myString = birthdays[currentMonth]
-                myString = myString+newLine+line
+                myString = myString+newLine+lines[iCounter]
                 birthdays[currentMonth] = myString
-    textfile.close()
+
+def addBirthdays(ctx, date: int, month: int):
+    textfile = data_folder/"JannupalsBirthdays.txt"
+    lines = textfile.read_text().split("\n")
+    fullText = ""
+    strMonth = months[month-1]
+    myFlag = False
+    for iCounter in range(len(lines)):
+        if myFlag == False:
+            if lines[iCounter] == strMonth:
+                myFlag = True
+        else:
+            if lines[iCounter][0].isalpha():
+                lines.insert(iCounter, "{0} - {1}".format(date, ctx.message.author.name))
+                myFlag = False
+            elif lines[iCounter][0].isdigit():
+                if int(lines[iCounter][:2]) >= date:
+                    lines.insert(iCounter, "{0} - {1}".format(date, ctx.message.author.name))
+                    myFlag = False
+    for iCounter in range(len(lines)):
+        fullText += lines[iCounter]
+        fullText += newLine
+    textfile.write_text(fullText)
 
 #============== ASYNC FUNCTIONS =======================
 async def sendPics(ctx, imglink, withText, loopNum = 0):
@@ -243,4 +310,4 @@ async def sendSinglePic(ctx, imglink, embed = None):
             data = io.BytesIO(await resp.read())
             await ctx.send(file=discord.File(data, 'img%s'%(imglink[27:])), embed = embed)
 
-bot.run('blahblahblah')
+bot.run('nananana')
