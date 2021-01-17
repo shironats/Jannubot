@@ -51,6 +51,8 @@ userID = {"haipa"       : IDHere,
           "chinpo"      : IDHere,
           "lilium"      : IDHere,
           "alwing"      : IDHere,
+          "malsi"       : IDHere,
+          "islam"       : IDHere,
           }
 
 nukeCode = {"user"      : userID,
@@ -104,6 +106,7 @@ miscImages = ['https://i.imgur.com/h7xGExX.png',    #bonkcounterBG
               'https://i.imgur.com/rkXH0dl.jpg',    #votestart
               'https://i.imgur.com/Py5OCUW.png',    #bonked
               'https://i.imgur.com/xb4ieP2.png',    #bonker
+              'https://i.imgur.com/X6HEDCc.png',    #kiryu
               ]
 
 allImages = {"down"     : downImages,
@@ -131,9 +134,10 @@ birthdays = {months[0]:'None (yet)',
 
 emojis = {"checkmark"   : '✅',
           "crossmark"   : '❌',
+          "F"           : '🇫',
           "uwaaru"      : '<:uwaaru:755820728175034489>',
-          "peeporun"    : '<a:peeporun:733977275954888786>',
-          "F"           : '🇫'}
+          "catcry"      : '<:catcry:686044174570881027>',
+          }
 
 ejected = """.      　。　　　•　    　ﾟ　　。　ﾟ
 　　.　　　.　　　  　　.　　　　　。　　
@@ -159,15 +163,19 @@ async def on_connect():
     global respectBGImage
     global bonkedImage
     global bonkerImage
+    global kiryuBGImage
     bonkcountBGImage = await getBackgroundImage(allImages["misc"][0])
     respectBGImage = await getBackgroundImage(allImages["misc"][1])
     bonkedImage = await getBackgroundImage(allImages["misc"][12])
     bonkerImage = await getBackgroundImage(allImages["misc"][13])
+    kiryuBGImage = await getBackgroundImage(allImages["misc"][14])
     print('Resources loaded')
 
 @bot.event
 async def on_ready():
     print('We have logged in as {0.user}'.format(bot))
+    dev = bot.get_user(nukeCode["user"]["self"])
+    await dev.send('I have logged on at {0}.'.format(datetime.datetime.now(pytz.timezone('Asia/Jakarta'))))    
 
 @bot.event
 async def on_message_delete(message):
@@ -177,6 +185,8 @@ async def on_message_delete(message):
                               description='Message sent by {0.mention} deleted in {1.mention}\n\n{2}'.format(message.author, message.channel, message.content))
         embed.set_author(name=str(message.author), icon_url=message.author.avatar_url)
         embed.set_footer(text=datetime.datetime.now(pytz.timezone('Asia/Tokyo')))
+        if len(message.attachments) > 0:
+            embed.set_image(url=message.attachments[0].proxy_url)
 
         await msgChannel.send(embed=embed)
 
@@ -239,10 +249,10 @@ async def help(ctx):
     if ctx.invoked_subcommand is None:
         embed = discord.Embed(colour = discord.Colour.teal(), description = "Type `}help [command]` for more help.\tE.g. `}help down`")
         embed.set_author(name='Help')
-        embed.add_field(name='Global Commands', value="`up` `checkImages` `truck` `bonk` `evade` `F` `votestart` `yeet` `emote`", inline=False)
-        embed.add_field(name='Jannupals-Exclusive Commands', value="`down` `birthday` `queue` `next` `clearqueue` `remove` `bonkcounter`", inline=False)
+        embed.add_field(name='Global Commands', value="`up` `checkImages` `truck` `bonk` `evade` `F` `votestart` `yeet` `emote` `baka` `time`", inline=False)
+        embed.add_field(name='Jannupals-Exclusive Commands', value="`down` `bday` `birthday` `queue` `next` `clearqueue` `remove` `bonkcounter` `cleaning`", inline=False)
         embed.add_field(name='Keywords Bot will React to', value='`aaaaa` `riot` `cricket cricket` `raaid` `Praise the sun` `stickbug`', inline=False)
-        embed.add_field(name='Other stuff', value='''[Source Code](https://github.com/shironats/Jannubot/blob/V2.90_07/11/DiscordBot.py)
+        embed.add_field(name='Other stuff', value='''[Source Code](https://github.com/shironats/Jannubot/blob/V3.00_12/12/DiscordBot.py)
                                                     [Jannubot invite link](https://discord.com/api/oauth2/authorize?client_id=731865140068089897&permissions=523328&scope=bot)''', inline=False)
         await ctx.send(embed=embed)
 
@@ -349,11 +359,30 @@ async def bonkcounter(ctx):
     embed.add_field(name='Note', value='Only available to Jannupals members.', inline=False)
     await ctx.send(embed=embed)
 
-@help.command(aliases=['emo'])
+@help.command(aliases=['emo', 'emotes'])
 async def emote(ctx):
     embed = discord.Embed(colour = discord.Colour.teal(), description = 'Sends an animated emote\nWill send a list of animated emotes instead if argument is not given')
     embed.set_author(name='}emote [emote name]')
-    embed.add_field(name='Aliases', value='`}emo`', inline=False)
+    embed.add_field(name='Aliases', value='`}emo` `}emotes`', inline=False)
+    await ctx.send(embed=embed)
+
+@help.command()
+async def bday(ctx):
+    embed = discord.Embed(colour = discord.Colour.teal(), description = 'Displays recorded member birthdays')
+    embed.set_author(name='}bday')
+    embed.add_field(name='Note', value='Only available to Jannupals members.', inline=False)
+    await ctx.send(embed=embed)
+
+@help.command()
+async def baka(ctx):
+    embed = discord.Embed(colour = discord.Colour.teal(), description = 'Kiryu is sad for you')
+    embed.set_author(name='}baka [@ someone]')
+    await ctx.send(embed=embed)
+
+@help.command()
+async def time(ctx):
+    embed = discord.Embed(colour = discord.Colour.teal(), description = 'Converts given JST time to US times')
+    embed.set_author(name='}time [####]')
     await ctx.send(embed=embed)
 
 #============== BOT COMMANDS ==============================
@@ -401,7 +430,7 @@ async def bonk(ctx, member: discord.Member, reason = "being bad"):
     else:
         link = allImages["bonk"][random.randrange(0,len(bonkImages))]
 
-    if (member == bot.get_user(nukeCode["user"]["self"])):
+    if ((member == bot.get_user(nukeCode["user"]["self"])) or (ctx.author.id == bot.get_user(nukeCode["user"]["malsi"])) or (ctx.author.id == bot.get_user(nukeCode["user"]["islam"]))):
         embed = discord.Embed(colour = discord.Colour.teal(), description = "{0.mention} has been BONKED by {1.mention} for {2}.".format(ctx.message.author, member, reason))
         memberIDs = (str(ctx.author.id), str(member.id))
     else:
@@ -466,13 +495,14 @@ async def bday(ctx):
 @bot.command()
 async def birthday(ctx, date: int, month: int):
     """Set Birthday"""
-#    if(ctx.guild.id == nukeCode["misc"]["jannupals"]):
-    if(ctx.author.id == nukeCode["user"]["self"]):
+    if(ctx.guild.id == nukeCode["misc"]["jannupals"]):
+##    if(ctx.author.id == nukeCode["user"]["self"]):
         try:
             addBirthdays(ctx, date, month)
         except:
             await ctx.send("Sorry, something went wrong")
         else:
+            clearBirthdays()
             getBirthdays()
             await ctx.send("Your birthday has been added to DA's database")
     else:
@@ -484,10 +514,10 @@ async def F(ctx, member: discord.Member):
     avatarSize = 256
     myImage = respectBGImage.copy()
     imgWidth, imgHeight = myImage.size
-    topLeft = (978, 354)
-    topRight = (1093, 356)
+    topLeft = (976, 353)
+    topRight = (1094, 354)
     bottomLeft = (990, 551)
-    bottomRight = (1111, 540)
+    bottomRight = (1112, 540)
 
 ##    for j in range(imgHeight):
 ##        for i in range(imgWidth):
@@ -625,12 +655,11 @@ async def yeet(ctx, thing: str):
 @bot.command(aliases=['emo'])
 async def emote(ctx, emoteName: str = None):
     """Let the people use animated emotes"""
-    emotesList = getEmojis(ctx.guild)
-##    if(ctx.guild.id == nukeCode["misc"]["jannupals"]):
+    emotesList = getEmojis(ctx.guild, True)
     if emoteName != None:
         check = False
         for content in emotesList:
-            if emoteName in content:
+            if emoteName.lower() in content.lower():
                 check = True
                 await ctx.send(content)
         if not check:
@@ -643,14 +672,132 @@ async def emote(ctx, emoteName: str = None):
             part2 = emotesList[len(emotesList)//2:]
             await ctx.send(" ".join(part1))
             await ctx.send(" ".join(part2))
-##    else:
-##        await ctx.send("Sorry, permission denied.")
+
+@bot.command()
+async def baka(ctx, member: discord.Member):
+    avatarSize = 256
+    myImage = kiryuBGImage.copy()
+    imgWidth, imgHeight = myImage.size
+    topLeft = (323, 364)
+    topRight = (568, 335)
+    bottomLeft = (352, 609)
+    bottomRight = (597, 580)
+
+##    for j in range(imgHeight):
+##        for i in range(imgWidth):
+##            myTuple = myImage.getpixel((i, j))
+##            if myTuple[0] == 0 and myTuple[1] == 13 and myTuple[2] == 255:
+##                if i < topLeft[0]:
+##                    topLeft[0], topLeft[1] = i, j
+##                if i > bottomRight[0]:
+##                    bottomRight[0], bottomRight[1] = i, j
+##                if j > bottomLeft[1]:
+##                    bottomLeft[0], bottomLeft[1] = i, j
+##    await ctx.send(str(topLeft)+"\t"+str(topRight)+"\n\n"+str(bottomLeft)+"\t"+str(bottomRight))
+
+    avatarAsset = member.avatar_url_as(format='png', size=256)
+    bufferAvatar = io.BytesIO(await avatarAsset.read())
+    avatarImage = Image.open(bufferAvatar)
+    avatarImage = avatarImage.resize((avatarSize,avatarSize))
+    avatarLayer = Image.new('RGBA', (imgWidth, imgHeight))
+    avatarLayer.paste(avatarImage, topLeft)
+    
+    coeffs = find_coeffs(
+        [topLeft, topRight, bottomRight, bottomLeft],
+        [topLeft, (topLeft[0]+avatarSize, topLeft[1]), (topLeft[0]+avatarSize, topLeft[1]+avatarSize), (topLeft[0], topLeft[1]+avatarSize)])
+    avatarLayer = avatarLayer.transform((imgWidth, imgHeight), Image.PERSPECTIVE, coeffs)
+    
+    myImage = Image.alpha_composite(myImage, avatarLayer)
+    myImage = myImage.convert("RGB")
+
+    buffer_output = io.BytesIO()
+    myImage.save(buffer_output, format='JPEG')
+    buffer_output.seek(0)
+
+    embed = discord.Embed(colour = discord.Colour.teal(), description = "DAME DA NE\nDAME YO\nDAME NANOYO".format(ctx.message.author, member))
+    embed.set_image(url='attachment://img.jpeg')
+    myMessage = await ctx.send(file=discord.File(buffer_output, "img.jpeg"), embed = embed)
+    await myMessage.add_reaction(emojis["catcry"])
 
 @bot.command()
 async def test(ctx, func: str, imgID: int):
     """Function for testing"""
     link = allImages[func][imgID]
     await sendSinglePic(ctx, link)
+
+@bot.command()
+async def cleaning(ctx):
+    """For emote cleaning"""
+    if(ctx.guild.id == nukeCode["misc"]["jannupals"]):
+        emotesList = getEmojis(ctx.guild, False)
+        if len(emotesList) != 100:
+            await ctx.send("Not yet 100, no needa clean yet.")
+        else:
+            batch1 = await ctx.send("Batch 1")
+            batch2 = await ctx.send("Batch 2")
+            batch3 = await ctx.send("Batch 3")
+            batch4 = await ctx.send("Batch 4")
+            batch5 = await ctx.send("Batch 5")
+            for i in range(20):
+                await batch1.add_reaction(emotesList[i])
+            for i in range(20,40):
+                await batch2.add_reaction(emotesList[i])
+            for i in range(40,60):
+                await batch3.add_reaction(emotesList[i])
+            for i in range(60,80):
+                await batch4.add_reaction(emotesList[i])
+            for i in range(80,100):
+                await batch5.add_reaction(emotesList[i])
+    else:
+        await ctx.send("Sorry, permission denied.")
+
+@bot.command()
+async def time(ctx, jst: str):
+    """Converts JST to PST/MST/CST/EST"""
+    myFlag = False
+    if (jst == 'now') or (len(jst) == 4):
+        myFlag = True
+    else:
+        try:
+            int(jst)
+        except:
+            myFlag = False
+        else:
+            myFlag = True
+        
+    if myFlag:
+        UTCTime = None
+        if jst == 'now':
+            UTCTime = datetime.datetime.now(pytz.timezone('UTC'))
+        else:
+            UTCh = int(jst[:2]) - 9
+            UTCm = int(jst[2:])
+            currentTime = datetime.datetime.utcnow()
+            UTCTime = datetime.datetime(currentTime.year, currentTime.month, currentTime.day,
+                                        UTCh, UTCm, 0, 0,
+                                        pytz.timezone('UTC'))
+        PSTTime = UTCTime.astimezone(pytz.timezone('America/Los_Angeles'))
+        MSTTime = UTCTime.astimezone(pytz.timezone('America/Denver'))
+        CSTTime = UTCTime.astimezone(pytz.timezone('America/Chicago'))
+        ESTTime = UTCTime.astimezone(pytz.timezone('America/New_York'))
+        embed = discord.Embed(colour = discord.Colour.teal())
+        embed.set_author(name='%s JST'%(jst))
+        embed.add_field(name='PST', value=PSTTime.strftime("%X"), inline=False)
+        embed.add_field(name='MST', value=MSTTime.strftime("%X"), inline=False)
+        embed.add_field(name='CST', value=CSTTime.strftime("%X"), inline=False)
+        embed.add_field(name='EST', value=ESTTime.strftime("%X"), inline=False)
+        await ctx.send(embed=embed)
+    else:
+        await ctx.send("Please enter JST time in 2400 format or 'now'")
+
+@bot.command()
+async def asd(ctx):
+    server = ctx.guild
+    emojis = [str(x) for x in server.emojis]
+    emojis1 = emojis[0:len(emojis)//2]
+    emojis2 = emojis[len(emojis)//2:-1]
+    await ctx.send(" ".join(emojis1))
+    await ctx.send(" ".join(emojis2))
 
 #============== FUNCTIONS==============================
 def getBirthdays():
@@ -668,10 +815,15 @@ def getBirthdays():
                 myString = myString+newLine+lines[iCounter]
                 birthdays[currentMonth] = myString
 
+def clearBirthdays():
+    for i in months:
+        birthdays[i] = 'None (yet)'
+
 def addBirthdays(ctx, date: int, month: int):
     textfile = data_folder/"JannupalsBirthdays.txt"
     lines = textfile.read_text().split("\n")
     fullText = ""
+    linesToDel = []
     strMonth = months[month-1]
     myFlag = False
     for iCounter in range(len(lines)):
@@ -679,17 +831,23 @@ def addBirthdays(ctx, date: int, month: int):
             if lines[iCounter] == strMonth:
                 myFlag = True
         else:
-            if lines[iCounter][0].isalpha():
-                lines.insert(iCounter, "{0} - {1}".format(date, ctx.message.author.name))
-                myFlag = False
-            elif lines[iCounter][0].isdigit():
-                if int(lines[iCounter][:2]) >= date:
+            try:
+                if lines[iCounter][0].isalpha():
                     lines.insert(iCounter, "{0} - {1}".format(date, ctx.message.author.name))
                     myFlag = False
+                elif lines[iCounter][0].isdigit():
+                    if int(lines[iCounter][:2]) >= date:
+                        lines.insert(iCounter, "{0} - {1}".format(date, ctx.message.author.name))
+                        myFlag = False
+            except:
+                linesToDel.append(iCounter)
+    for i in range(len(linesToDel)):
+        del lines[linesToDel[0]]
     for iCounter in range(len(lines)):
         fullText += lines[iCounter]
         fullText += newLine
-    textfile.write_text(fullText, encoding = 'utf-8')
+
+    textfile.write_text(fullText)
 
 def find_coeffs(pa, pb):
     matrix = []
@@ -893,15 +1051,19 @@ def bonkCard(userName, bonkStats):
 
     return myImage
 
-def getEmojis(server):
+def getEmojis(server, isAnimated: bool):
     emojis = [str(x) for x in server.emojis]
     final = []
     if emojis == None:
         print("Emojis unavailable")
         return None
     for a in emojis:
-        if '<a:' in a:
-            final.append(a)
+        if isAnimated:
+            if '<a:' in a:
+                final.append(a)
+        else:
+            if '<a:' not in a:
+                final.append(a)
     return final
 
 #============== ASYNC FUNCTIONS =======================
