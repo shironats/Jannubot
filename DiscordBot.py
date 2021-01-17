@@ -1,17 +1,26 @@
 import discord
 from discord.ext import commands, tasks
 from discord.utils import get
+from pathlib import Path
+from PIL import Image, ImageDraw, ImageFont
+from googleapiclient.discovery import build
+from google_auth_oauthlib.flow import InstalledAppFlow
+from google.auth.transport.requests import Request
 import os
 import io
 import aiohttp
 import random
 import time
-from pathlib import Path
+import numpy
+import pickle
 
 bot = commands.Bot(command_prefix='}', activity=discord.Game(name='}help'))
 bot.remove_command('help')
 
 #============== SENSITIVE NUMBERS ==============
+TOKEN = 'IDHere'
+SPREADSHEET_ID = 'IDHere'
+
 miscID = {"jannupals"   : IDHere, #server
           "botfest"     : IDHere, #channel
           "general"     : IDHere} #channel
@@ -72,6 +81,12 @@ evadeImages = ['https://i.imgur.com/ruwTwKI.png',
                'https://i.imgur.com/uYd12fT.png',
                'https://i.imgur.com/N8NCQWH.jpg']
 
+allImages = {"down"     : downImages,
+             "up"       : upImages,
+             "truck"    : truckImages,
+             "bonk"     : bonkImages,
+             "evade"    : evadeImages}
+
 months = ['January','February','March','April','May','June','July',
           'August','September','October','November','December']
 
@@ -88,12 +103,10 @@ birthdays = {months[0]:'None (yet)',
              months[10]:'None (yet)',
              months[11]:'None (yet)'}
 
-raidQueue = []
-myCurrentQueue = [0]
-
-emojis = {"checkmark":'✅',
-          "crossmark":'❌',
-          "uwaaru":'<:uwaaru:755820728175034489>'}
+emojis = {"checkmark"   : '✅',
+          "crossmark"   : '❌',
+          "uwaaru"      : '<:uwaaru:755820728175034489>',
+          "F"           : '🇫'}
 
 ejected = """.      　。　　　•　    　ﾟ　　。　ﾟ
 　　.　　　.　　　  　　.　　　　　。　　
@@ -102,6 +115,8 @@ ejected = """.      　。　　　•　    　ﾟ　　。　ﾟ
 　 　　。　　 　　　　ﾟ　　　.　    　　　。
 ,　　　　.　 .　　    .             .                  ."""
 
+raidQueue = []
+myCurrentQueue = [0]
 data_folder = Path("DiscordBot_source/")
 newLine = "\n"
 
@@ -112,6 +127,10 @@ async def on_ready():
         getBirthdays()
     except:
         print('Birthdays not found, leaving as empty')
+    global sparkBGImage
+    global respectBGImage
+    sparkBGImage = await getBackgroundImage('https://i.imgur.com/dEuGdHI.jpg')
+    respectBGImage = await getBackgroundImage('https://i.imgur.com/4LVGMPn.jpg')
     print('We have logged in as {0.user}'.format(bot))
 
 @bot.event
@@ -133,18 +152,22 @@ async def on_message(message):
 #send Jangkrik
     if message.content.lower().endswith('cricket cricket') and message.content.lower().startswith('cricket cricket'):
         await message.channel.send('https://tenor.com/wjNW.gif')
-
+#send Riot pic
+    if message.content.lower().find('riot') != -1:
+        await message.channel.send('https://i.imgur.com/fyG8NZk.png')
 #send Mango memorial
-    if message.content.lower().find(' mango ') != -1:
+    elif message.content.lower().find(' mango ') != -1:
         await message.channel.send('https://i.imgur.com/EmrHMS7.jpg')
+#send Solaire
+    elif message.content.lower().find('praise the sun') != -1:
+        await message.channel.send('https://i.imgur.com/MYhwSHm.gif')
+    elif message.content.lower().find('stickbug') != -1:
+        await message.channel.send('https://tenor.com/view/stickbug-excited-dance-dancing-lit-gif-11913206')
 #send RAID: SHADOW LEGENDS
     elif message.content.lower().find('ra') != -1:
         if message.content.lower().find('aai') > message.content.lower().find('ra'):
             if message.content.lower().find('id') > message.content.lower().find('aai'):
                 await message.channel.send('https://i.imgur.com/eywxw5g.gif')
-#send Solaire
-    elif message.content.lower().find('praise the sun') != -1:
-        await message.channel.send('https://i.imgur.com/MYhwSHm.gif')
 
 #counters Uwaaru
     if message.content.find('<:uwaaru:755820728175034489>') != -1:
@@ -165,9 +188,10 @@ async def help(ctx, detail = "None"):
     if detail.lower() == "none":
         embed = discord.Embed(colour = discord.Colour.teal(), description = "Type `}help [command]` for more help.\tE.g. `}help down`")
         embed.set_author(name='Help')
-        embed.add_field(name='Commands', value="`down` `up` `checkImages` `truck` `bonk` `evade` `riot` `birthday` `TE` `queue` `next` `clearqueue` `votestart`", inline=False)
-        embed.add_field(name='Other Features', value='Send 5 "a"s\nSend "cricket cricket"\nSend "raaid"\nSend "Praise the sun"', inline=False)
-        embed.add_field(name='Source Code', value='https://github.com/shironats/Jannubot/blob/V2.60_03/10/DiscordBot.py', inline=False)
+        embed.add_field(name='Global Commands', value="`down` `up` `checkImages` `truck` `bonk` `evade` `F` `votestart`", inline=False)
+        embed.add_field(name='Jannupals-Exclusive Commands', value="`birthday` `queue` `next` `clearqueue`", inline=False)
+        embed.add_field(name='Keywords Bot will React to', value='`aaaaa` `riot` `cricket cricket` `raaid` `Praise the sun` `stickbug`', inline=False)
+        embed.add_field(name='Source Code', value='https://github.com/shironats/Jannubot/blob/V2.70_15/10/DiscordBot.py', inline=False)
     else:
         if detail.lower() == 'down':
             embed = discord.Embed(colour = discord.Colour.teal(), description = 'Spams random "Buff is down" images')
@@ -188,31 +212,33 @@ async def help(ctx, detail = "None"):
         elif detail.lower() == 'evade':
             embed = discord.Embed(colour = discord.Colour.teal(), description = 'Rolls for bonk evasion')
             embed.set_author(name='}evade')
-        elif detail.lower() == 'riot':
-            embed = discord.Embed(colour = discord.Colour.teal(), description = 'Time to RIOT!!!')
-            embed.set_author(name='}riot')
         elif detail.lower() == 'birthday':
             embed = discord.Embed(colour = discord.Colour.teal(), description = 'Sends your birthday to my txt file')
             embed.set_author(name='}birthday [date] [month]')
-        elif detail.lower() == 'te':
-            embed = discord.Embed(colour = discord.Colour.teal(), description = 'Calls people subscribed to DA TE Services')
-            embed.set_author(name='}TE [code]')
+            embed.add_field(name='Note', value='Only available to Jannupals members.', inline=False)
+        elif detail.lower() == 'f':
+            embed = discord.Embed(colour = discord.Colour.teal(), description = 'Press F to Pay Respects')
+            embed.set_author(name='}F [@ someone]')
         elif (detail.lower() == 'queue') or (detail.lower() == 'q'):
             embed = discord.Embed(colour = discord.Colour.teal(), description = 'Check raid host queue')
             embed.set_author(name='}queue')
             embed.add_field(name='}queue [raid name]', value='Add to raid host queue', inline=False)
+            embed.add_field(name='Note', value='Only available to Jannupals members.', inline=False)
             embed.add_field(name='Aliases', value='`}q`')
         elif (detail.lower() == 'next') or (detail.lower() == 'n'):
             embed = discord.Embed(colour = discord.Colour.teal(), description = 'Moves the raid host queue')
             embed.set_author(name='}next')
+            embed.add_field(name='Note', value='Only available to Jannupals members.', inline=False)
             embed.add_field(name='Aliases', value='`}n`', inline=False)
         elif (detail.lower() == 'remove') or (detail.lower() == 'r'):
             embed = discord.Embed(colour = discord.Colour.teal(), description = 'Removes selected entry from the raid host queue')
             embed.set_author(name='}remove [entry number]')
+            embed.add_field(name='Note', value='Only available to Jannupals members.', inline=False)
             embed.add_field(name='Aliases', value='`}r`', inline=False)
         elif (detail.lower() == 'clearqueue') or (detail.lower() == 'c'):
             embed = discord.Embed(colour = discord.Colour.teal(), description = 'Clears the raid host queue')
             embed.set_author(name='}clearqueue')
+            embed.add_field(name='Note', value='Only available to Jannupals members.', inline=False)
             embed.add_field(name='Aliases', value='`}c`', inline=False)
         elif detail.lower() == 'votestart':
             embed = discord.Embed(colour = discord.Colour.teal(), description = 'Vote to YEET that person')
@@ -230,14 +256,10 @@ async def down(ctx):
 @bot.command()
 async def test(ctx, func: str, imgID: int):
     """Function for testing"""
-    if (func == 'down'):
-        link = downImages[imgID]
-    elif (func == 'up'):
-        link = upImages[imgID]
-    elif (func == 'truck'):
-        link = truckImages[imgID]
-    else:
-        link = bonkImages[imgID]
+    try:
+        link = allImages[func][imgID]
+    except:
+        link = allImages["bonk"][5]
     await sendSinglePic(ctx, link)
 
 @bot.command()
@@ -245,29 +267,21 @@ async def up(ctx):
     """Sets timer for next buff reactivation"""
     downSpam.cancel()
     downSpamBot.cancel()
-    link = upImages[random.randint(0,len(upImages)-1)]
-    await sendPics(ctx, link, False)
+    link = allImages["up"][random.randint(0,len(upImages)-1)]
+    await sendSinglePic(ctx, link)
 
 @bot.command()
 async def checkImages(ctx):
     """Check }down images"""
-    for iCounter in range(len(downImages)):
-        link = downImages[iCounter]
-        await sendSinglePic(ctx, link)
-    for iCounter in range(len(upImages)):
-        link = upImages[iCounter]
-        await sendSinglePic(ctx, link)
-    for iCounter in range(len(truckImages)):
-        link = truckImages[iCounter]
-        await sendSinglePic(ctx, link)
-    for iCounter in range(len(bonkImages)):
-        link = bonkImages[iCounter]
-        await sendSinglePic(ctx, link)
+    for imgList in allImages:
+        for iCounter in range(len(allImages[imgList])):
+            link = allImages[imgList][iCounter]
+            await sendSinglePic(ctx, link)
  
 @bot.command()
 async def truck(ctx, member: discord.Member):
     """Sends a truck over"""
-    link = truckImages[random.randint(0,len(truckImages)-1)]
+    link = allImages["truck"][random.randint(0,len(truckImages)-1)]
     embed = discord.Embed(colour = discord.Colour.teal(), description = '{0.mention}, {1.mention} sends their regards.'.format(member, ctx.message.author))
     embed.set_image(url='attachment://img%s' %(link[27:]))
     await sendSinglePic(ctx, link, embed)
@@ -278,7 +292,7 @@ async def bonk(ctx, member: discord.Member, reason = "being bad"):
     if ((member == bot.get_user(nukeCode["user"]["joe"])) or (member == bot.get_user(nukeCode["user"]["chinpo"]))):
         link = 'https://i.imgur.com/ZvUC0Eq.jpg'
     else:
-        link = bonkImages[random.randint(0,len(bonkImages)-1)]
+        link = allImages["bonk"][random.randint(0,len(bonkImages)-1)]
     if (member == bot.get_user(nukeCode["user"]["self"])):
         embed = discord.Embed(colour = discord.Colour.teal(), description = "{0.mention} has been BONKED by {1.mention} for {2}.".format(ctx.message.author, member, reason))
     else:
@@ -290,18 +304,13 @@ async def bonk(ctx, member: discord.Member, reason = "being bad"):
 async def evade(ctx):
     """Roll for evasion"""
     if(random.randint(1,20) > 18):
-        link = evadeImages[random.randint(0,len(evadeImages)-1)]
+        link = allImages["evade"][random.randint(0,len(evadeImages)-1)]
         embed = discord.Embed(colour = discord.Colour.teal(), description = "{0.mention} evades the bonk.".format(ctx.message.author))
     else:
-        link = bonkImages[random.randint(0,len(bonkImages)-1)]
+        link = allImages["bonk"][random.randint(0,len(bonkImages)-1)]
         embed = discord.Embed(colour = discord.Colour.teal(), description = "{0.mention} is BONKED again by {1.mention} for trying to evade the bonk.".format(ctx.message.author, bot.user))
     embed.set_image(url='attachment://img%s' %(link[27:]))
     await sendSinglePic(ctx, link, embed)
-
-@bot.command()
-async def riot(ctx):
-    """Time to RIOT!!"""
-    await sendSinglePic(ctx, 'https://i.imgur.com/fyG8NZk.png')
 
 @bot.command()
 async def bday(ctx):
@@ -326,19 +335,52 @@ async def birthday(ctx, date: int, month: int):
         await ctx.send("Sorry, permission denied.")
 
 @bot.command()
-async def TE(ctx, raidcode: str):
-    """Call TE Peeps"""
-    if(ctx.guild.id == nukeCode["misc"]["jannupals"]):
-        await ctx.send("%s %s %s %s %s %s %s %s" %(nukeCode["role"]["twinele"],
-                                                   raidcode,
-                                                   bot.get_user(nukeCode["user"]["zeo"]).mention,
-                                                   bot.get_user(nukeCode["user"]["nana"]).mention,
-                                                   bot.get_user(nukeCode["user"]["bunny"]).mention,
-                                                   bot.get_user(nukeCode["user"]["wayne"]).mention,
-                                                   bot.get_user(nukeCode["user"]["yonji"]).mention,
-                                                   bot.get_user(nukeCode["user"]["self"]).mention))
-    else:
-        await ctx.send("Sorry, permission denied.")
+async def F(ctx, member: discord.Member):
+    """Press F to pay respect"""
+    avatarSize = 256
+    myImage = respectBGImage.copy()
+    imgWidth, imgHeight = myImage.size
+    topLeft = (978, 354)
+    topRight = (1093, 356)
+    bottomLeft = (990, 551)
+    bottomRight = (1111, 540)
+
+##    for j in range(imgHeight):
+##        for i in range(imgWidth):
+##            myTuple = myImage.getpixel((i, j))
+##            if myTuple[0] == 255 and myTuple[1] == 255 and myTuple[2] == 255:
+##                if i > topRight[0] and j <= topRight[1]+1:
+##                    topRight[0], topRight[1] = i, j
+##                if i > bottomRight[0]:
+##                    bottomRight[0], bottomRight[1] = i, j
+##                if j > bottomLeft[1]:
+##                    bottomLeft[0], bottomLeft[1] = i, j
+##    await ctx.send(str(topLeft)+"\t"+str(topRight)+"\n\n"+str(bottomLeft)+"\t"+str(bottomRight))
+
+    avatarAsset = member.avatar_url_as(format='png', size=256)
+    bufferAvatar = io.BytesIO(await avatarAsset.read())
+    avatarImage = Image.open(bufferAvatar)
+    avatarImage = avatarImage.resize((avatarSize,avatarSize))
+    avatarLayer = Image.new('RGBA', (imgWidth, imgHeight))
+    avatarLayer.paste(avatarImage, topLeft)
+    
+    coeffs = find_coeffs(
+        [topLeft, topRight, bottomRight, bottomLeft],
+        [topLeft, (topLeft[0]+avatarSize, topLeft[1]), (topLeft[0]+avatarSize, topLeft[1]+avatarSize), (topLeft[0], topLeft[1]+avatarSize)])
+    avatarLayer = avatarLayer.transform((imgWidth, imgHeight), Image.PERSPECTIVE, coeffs)
+    
+    myImage = Image.alpha_composite(myImage, avatarLayer)
+    myImage = myImage.crop((imgWidth/3, topLeft[1]-50, imgWidth, imgHeight))
+    myImage = myImage.convert("RGB")
+
+    buffer_output = io.BytesIO()
+    myImage.save(buffer_output, format='JPEG')
+    buffer_output.seek(0)
+
+    embed = discord.Embed(colour = discord.Colour.teal(), description = "{0.mention} pays their respects.\nRIP {1.mention}.".format(ctx.message.author, member))
+    embed.set_image(url='attachment://img.jpeg')
+    myMessage = await ctx.send(file=discord.File(buffer_output, "img.jpeg"), embed = embed)
+    await myMessage.add_reaction(emojis["F"])
 
 @bot.command()
 async def queue(ctx, raidName: str = "None"):
@@ -357,11 +399,13 @@ async def queue(ctx, raidName: str = "None"):
                     if myCurrentQueue[0] == x:
                         qString = qString + "\t⬐ current raid" + newLine
                     if(raidQueue[x].find("<@!") != -1):
-                        qUser = bot.get_guild(nukeCode["misc"]["jannupals"]).get_member(int(raidQueue[x][raidQueue[x].find("<@!")+3:raidQueue[x].find(">")])).display_name
+                        qMember = await bot.get_guild(nukeCode["misc"]["jannupals"]).fetch_member(int(raidQueue[x][raidQueue[x].find("<@!")+3:raidQueue[x].find(">", raidQueue[x].find("<@!"))]))
+                        qUser = qMember.display_name
                         qString = qString + str(x+1) + ") " + raidQueue[x][:raidQueue[x].find("<@!")] + qUser + newLine
                     else:
-                        qUser = bot.get_guild(nukeCode["misc"]["jannupals"]).get_member(int(raidQueue[x][raidQueue[x].find("<@")+2:raidQueue[x].find(">")])).display_name
-                        qString = qString + str(x+1) + ") " + raidQueue[x][:raidQueue[x].find("<@")] + qUser + newLine
+                        qMember = await bot.get_guild(nukeCode["misc"]["jannupals"]).fetch_member(int(raidQueue[x][raidQueue[x].find("<@")+2:raidQueue[x].find(">", raidQueue[x].find("<@"))]))
+                        qUser = qMember.display_name
+                        qString = qString + str(x+1) + ") " + raidQueue[x][:raidQueue[x].find("<@")] + qUser + newLine                            
                     if myCurrentQueue[0] == x:
                         qString = qString + "\t⬑ current raid" + newLine
                 qString += "```"
@@ -429,10 +473,6 @@ async def votestart(ctx, member: discord.Member):
     else:
         await ctx.send(ejected %("No one", ". (Skipped)"))
 
-@bot.command()
-async def asd(ctx):
-    await ctx.send("```⬑⬐```")
-
 #============== ALT COMMANDS ==========================
 @bot.command(pass_context = True)
 async def h(ctx, detail = "None"):
@@ -467,12 +507,12 @@ async def r(ctx, entry: int):
 #============== BOT LOOPS =============================
 @tasks.loop(seconds=10)
 async def downSpam(ctx):
-    link = downImages[random.randint(0,len(downImages)-1)]
+    link = allImages["down"][random.randint(0,len(downImages)-1)]
     await sendPics(ctx, link, True, downSpam.current_loop)
 
 @tasks.loop(seconds=10)
 async def downSpamBot(target_channel):
-    link = downImages[random.randint(0,len(downImages)-1)]
+    link = allImages["down"][random.randint(0,len(downImages)-1)]
     msgChannel = bot.get_channel(target_channel)
     await sendPics(msgChannel, link, True, downSpamBot.current_loop)
 
@@ -515,6 +555,18 @@ def addBirthdays(ctx, date: int, month: int):
         fullText += newLine
     textfile.write_text(fullText)
 
+def find_coeffs(pa, pb):
+    matrix = []
+    for p1, p2 in zip(pa, pb):
+        matrix.append([p1[0], p1[1], 1, 0, 0, 0, -p2[0]*p1[0], -p2[0]*p1[1]])
+        matrix.append([0, 0, 0, p1[0], p1[1], 1, -p2[1]*p1[0], -p2[1]*p1[1]])
+
+    A = numpy.matrix(matrix, dtype=numpy.float)
+    B = numpy.array(pb).reshape(8)
+
+    res = numpy.dot(numpy.linalg.inv(A.T * A) * A.T, B)
+    return numpy.array(res).reshape(8)
+
 #============== ASYNC FUNCTIONS =======================
 async def sendPics(ctx, imglink, withText, loopNum = 0):
     async with aiohttp.ClientSession() as session:
@@ -535,4 +587,15 @@ async def sendSinglePic(ctx, imglink, embed = None):
             data = io.BytesIO(await resp.read())
             return await ctx.send(file=discord.File(data, 'img%s'%(imglink[27:])), embed = embed)
 
-bot.run('IDHere')
+async def getBackgroundImage(imglink: str):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(imglink) as resp:
+            if resp.status != 200:
+                print('Could not download file...')
+                return None
+            aImage = io.BytesIO(await resp.read())
+            myImage = Image.open(aImage)
+            myImage = myImage.convert('RGBA')
+            return myImage
+        
+bot.run(TOKEN)
