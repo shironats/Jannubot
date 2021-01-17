@@ -89,6 +89,7 @@ birthdays = {months[0]:'None (yet)',
              months[11]:'None (yet)'}
 
 raidQueue = []
+myCurrentQueue = [0]
 
 emojis = {"checkmark":'✅',
           "crossmark":'❌',
@@ -107,7 +108,10 @@ newLine = "\n"
 #============== BOT EVENTS ================================
 @bot.event
 async def on_ready():
-    getBirthdays()
+    try:
+        getBirthdays()
+    except:
+        print('Birthdays not found, leaving as empty')
     print('We have logged in as {0.user}'.format(bot))
 
 @bot.event
@@ -163,7 +167,7 @@ async def help(ctx, detail = "None"):
         embed.set_author(name='Help')
         embed.add_field(name='Commands', value="`down` `up` `checkImages` `truck` `bonk` `evade` `riot` `birthday` `TE` `queue` `next` `clearqueue` `votestart`", inline=False)
         embed.add_field(name='Other Features', value='Send 5 "a"s\nSend "cricket cricket"\nSend "raaid"\nSend "Praise the sun"', inline=False)
-        embed.add_field(name='Source Code', value='https://github.com/shironats/Jannubot/blob/V2.50_30/09/DiscordBot.py', inline=False)
+        embed.add_field(name='Source Code', value='https://github.com/shironats/Jannubot/blob/V2.60_03/10/DiscordBot.py', inline=False)
     else:
         if detail.lower() == 'down':
             embed = discord.Embed(colour = discord.Colour.teal(), description = 'Spams random "Buff is down" images')
@@ -202,10 +206,14 @@ async def help(ctx, detail = "None"):
             embed = discord.Embed(colour = discord.Colour.teal(), description = 'Moves the raid host queue')
             embed.set_author(name='}next')
             embed.add_field(name='Aliases', value='`}n`', inline=False)
-        elif (detail.lower() == 'clearqueue') or (detail.lower() == 'c') or (detail.lower() == 'r'):
+        elif (detail.lower() == 'remove') or (detail.lower() == 'r'):
+            embed = discord.Embed(colour = discord.Colour.teal(), description = 'Removes selected entry from the raid host queue')
+            embed.set_author(name='}remove [entry number]')
+            embed.add_field(name='Aliases', value='`}r`', inline=False)
+        elif (detail.lower() == 'clearqueue') or (detail.lower() == 'c'):
             embed = discord.Embed(colour = discord.Colour.teal(), description = 'Clears the raid host queue')
             embed.set_author(name='}clearqueue')
-            embed.add_field(name='Aliases', value='`}c` `}r`', inline=False)
+            embed.add_field(name='Aliases', value='`}c`', inline=False)
         elif detail.lower() == 'votestart':
             embed = discord.Embed(colour = discord.Colour.teal(), description = 'Vote to YEET that person')
             embed.set_author(name='}votestart [@ someone]')
@@ -346,12 +354,16 @@ async def queue(ctx, raidName: str = "None"):
             else:
                 qString = "```"
                 for x in range(len(raidQueue)):
+                    if myCurrentQueue[0] == x:
+                        qString = qString + "\t⬐ current raid" + newLine
                     if(raidQueue[x].find("<@!") != -1):
                         qUser = bot.get_guild(nukeCode["misc"]["jannupals"]).get_member(int(raidQueue[x][raidQueue[x].find("<@!")+3:raidQueue[x].find(">")])).display_name
                         qString = qString + str(x+1) + ") " + raidQueue[x][:raidQueue[x].find("<@!")] + qUser + newLine
                     else:
                         qUser = bot.get_guild(nukeCode["misc"]["jannupals"]).get_member(int(raidQueue[x][raidQueue[x].find("<@")+2:raidQueue[x].find(">")])).display_name
                         qString = qString + str(x+1) + ") " + raidQueue[x][:raidQueue[x].find("<@")] + qUser + newLine
+                    if myCurrentQueue[0] == x:
+                        qString = qString + "\t⬑ current raid" + newLine
                 qString += "```"
                 await ctx.send(qString)
     else:
@@ -361,13 +373,31 @@ async def queue(ctx, raidName: str = "None"):
 async def next(ctx):
     """Next raid up"""
     if(ctx.guild.id == nukeCode["misc"]["jannupals"]):
-        if(len(raidQueue) == 0):
-            embed = discord.Embed(colour = discord.Colour.teal(), description = "Please fill with }queue")
+        if len(raidQueue) == 0:
+            embed = discord.Embed(colour = discord.Colour.teal(), description = "Please fill with `}queue`")
+            embed.set_author(name = "Queue is empty")
+        elif myCurrentQueue[0] == (len(raidQueue)-1):
+            embed = discord.Embed(colour = discord.Colour.teal(), description = "Please add more with `}queue` or clear with `}clearqueue`")
+            embed.set_author(name = "You've reached the end of the queue")
+        else:
+            myCurrentQueue[0] += 1
+            embed = discord.Embed(colour = discord.Colour.teal(), description = "%s" %(raidQueue[myCurrentQueue[0]]))
+            embed.set_author(name="Next Up")
+        await ctx.send(embed=embed)
+    else:
+        await ctx.send("Sorry, permission denied.")
+
+@bot.command()
+async def remove(ctx, entry: int):
+    """Remove queue entry"""
+    if(ctx.guild.id == nukeCode["misc"]["jannupals"]):
+        if len(raidQueue) == 0:
+            embed = discord.Embed(colour = discord.Colour.teal(), description = "Please fill with `}queue`")
             embed.set_author(name = "Queue is empty")
         else:
-            embed = discord.Embed(colour = discord.Colour.teal(), description = "%s" %(raidQueue[0]))
-            embed.set_author(name="Next Up")
-            del raidQueue[0]
+            raidRemoved = raidQueue.pop(entry-1)
+            embed = discord.Embed(colour = discord.Colour.teal(), description = "%s has been removed by [%s]" %(raidRemoved[:raidRemoved.find("by")], ctx.message.author.mention))
+            embed.add_field(name="This function was brought to you by:",value=bot.get_user(nukeCode["user"]["haipa"]).mention,inline=False)
         await ctx.send(embed=embed)
     else:
         await ctx.send("Sorry, permission denied.")
@@ -377,6 +407,7 @@ async def clearqueue(ctx):
     """Clears raid queue"""
     if(ctx.guild.id == nukeCode["misc"]["jannupals"]):
         raidQueue.clear()
+        myCurrentQueue[0] = 0
         await ctx.send("```Queue cleared```")
     else:
         await ctx.send("Sorry, permission denied.")
@@ -397,6 +428,10 @@ async def votestart(ctx, member: discord.Member):
         await ctx.send(ejected %(member.display_name, "."))
     else:
         await ctx.send(ejected %("No one", ". (Skipped)"))
+
+@bot.command()
+async def asd(ctx):
+    await ctx.send("```⬑⬐```")
 
 #============== ALT COMMANDS ==========================
 @bot.command(pass_context = True)
@@ -425,9 +460,9 @@ async def c(ctx):
     await clearqueue(ctx)
 
 @bot.command()
-async def r(ctx):
-    """Same as }clearqueue"""
-    await clearqueue(ctx)
+async def r(ctx, entry: int):
+    """Same as }remove"""
+    await remove(ctx, entry)
 
 #============== BOT LOOPS =============================
 @tasks.loop(seconds=10)
