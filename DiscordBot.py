@@ -1,9 +1,11 @@
 import discord
 from discord.ext import commands, tasks
+from discord.utils import get
 import os
 import io
 import aiohttp
 import random
+import time
 from pathlib import Path
 
 bot = commands.Bot(command_prefix='}', activity=discord.Game(name='}help'))
@@ -88,6 +90,17 @@ birthdays = {months[0]:'None (yet)',
 
 raidQueue = []
 
+emojis = {"checkmark":'✅',
+          "crossmark":'❌',
+          "uwaaru":'<:uwaaru:755820728175034489>'}
+
+ejected = """.      　。　　　•　    　ﾟ　　。　ﾟ
+　　.　　　.　　　  　　.　　　　　。　　
+　.　　      。　        ඞ   。　    .    •
+  •              %s was ejected%s 。　.
+　 　　。　　 　　　　ﾟ　　　.　    　　　。
+,　　　　.　 .　　    .             .                  ."""
+
 data_folder = Path("DiscordBot_source/")
 newLine = "\n"
 
@@ -96,7 +109,6 @@ newLine = "\n"
 async def on_ready():
     getBirthdays()
     print('We have logged in as {0.user}'.format(bot))
-#    await bot.change_presence(activity=discord.Game(name='}help'))
 
 @bot.event
 async def on_message(message):
@@ -149,9 +161,9 @@ async def help(ctx, detail = "None"):
     if detail.lower() == "none":
         embed = discord.Embed(colour = discord.Colour.teal(), description = "Type `}help [command]` for more help.\tE.g. `}help down`")
         embed.set_author(name='Help')
-        embed.add_field(name='Commands', value="`down` `up` `checkImages` `truck` `bonk` `evade` `riot` `birthday` `TE` `queue` `next` `clearqueue`", inline=False)
+        embed.add_field(name='Commands', value="`down` `up` `checkImages` `truck` `bonk` `evade` `riot` `birthday` `TE` `queue` `next` `clearqueue` `votestart`", inline=False)
         embed.add_field(name='Other Features', value='Send 5 "a"s\nSend "cricket cricket"\nSend "raaid"\nSend "Praise the sun"', inline=False)
-        embed.add_field(name='Source Code', value='https://github.com/shironats/Jannubot/blob/V2.40_28/09/DiscordBot.py', inline=False)
+        embed.add_field(name='Source Code', value='https://github.com/shironats/Jannubot/blob/V2.50_30/09/DiscordBot.py', inline=False)
     else:
         if detail.lower() == 'down':
             embed = discord.Embed(colour = discord.Colour.teal(), description = 'Spams random "Buff is down" images')
@@ -194,6 +206,9 @@ async def help(ctx, detail = "None"):
             embed = discord.Embed(colour = discord.Colour.teal(), description = 'Clears the raid host queue')
             embed.set_author(name='}clearqueue')
             embed.add_field(name='Aliases', value='`}c` `}r`', inline=False)
+        elif detail.lower() == 'votestart':
+            embed = discord.Embed(colour = discord.Colour.teal(), description = 'Vote to YEET that person')
+            embed.set_author(name='}votestart [@ someone]')
         else:
             embed = discord.Embed(colour = discord.Colour.teal(), description = 'Please check }help')
             embed.set_author(name='No such command')
@@ -331,8 +346,12 @@ async def queue(ctx, raidName: str = "None"):
             else:
                 qString = "```"
                 for x in range(len(raidQueue)):
-                    qUser = bot.get_guild(nukeCode["misc"]["jannupals"]).get_member(int(raidQueue[x][raidQueue[x].find("!")+1:-1])).display_name
-                    qString = qString + str(x+1) + ") " + raidQueue[x][:raidQueue[x].find("<@!")] + qUser + newLine
+                    if(raidQueue[x].find("<@!") != -1):
+                        qUser = bot.get_guild(nukeCode["misc"]["jannupals"]).get_member(int(raidQueue[x][raidQueue[x].find("<@!")+3:raidQueue[x].find(">")])).display_name
+                        qString = qString + str(x+1) + ") " + raidQueue[x][:raidQueue[x].find("<@!")] + qUser + newLine
+                    else:
+                        qUser = bot.get_guild(nukeCode["misc"]["jannupals"]).get_member(int(raidQueue[x][raidQueue[x].find("<@")+2:raidQueue[x].find(">")])).display_name
+                        qString = qString + str(x+1) + ") " + raidQueue[x][:raidQueue[x].find("<@")] + qUser + newLine
                 qString += "```"
                 await ctx.send(qString)
     else:
@@ -362,9 +381,22 @@ async def clearqueue(ctx):
     else:
         await ctx.send("Sorry, permission denied.")
 
-#@bot.command()
-#async def asd(ctx, emot: discord.Emoji):
-#    await ctx.send("%i"%(emot.id))
+@bot.command()
+async def votestart(ctx, member: discord.Member):
+    """Vote to kick off"""
+    link = "https://i.imgur.com/rkXH0dl.jpg"
+    embed = discord.Embed(colour = discord.Colour.teal(), description = "You have 15 seconds to vote.")
+    embed.set_author(name = "Emergency meeting called to eject %s." %(member.display_name))
+    embed.set_image(url='attachment://img%s' %(link[27:]))
+    myMessage = await sendSinglePic(ctx, link, embed)
+    await myMessage.add_reaction(emojis["checkmark"])
+    await myMessage.add_reaction(emojis["crossmark"])
+    time.sleep(15)
+    myMessage = await ctx.fetch_message(myMessage.id)
+    if myMessage.reactions[0].count > myMessage.reactions[1].count:
+        await ctx.send(ejected %(member.display_name, "."))
+    else:
+        await ctx.send(ejected %("No one", ". (Skipped)"))
 
 #============== ALT COMMANDS ==========================
 @bot.command(pass_context = True)
@@ -466,6 +498,6 @@ async def sendSinglePic(ctx, imglink, embed = None):
             if resp.status != 200:
                 return await ctx.send('Could not download file...')
             data = io.BytesIO(await resp.read())
-            await ctx.send(file=discord.File(data, 'img%s'%(imglink[27:])), embed = embed)
+            return await ctx.send(file=discord.File(data, 'img%s'%(imglink[27:])), embed = embed)
 
 bot.run('IDHere')
