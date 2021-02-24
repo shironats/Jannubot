@@ -158,7 +158,8 @@ newLine = "\n"
 async def on_connect():
     print('Connected')
     try:
-        getBirthdays()
+        clearBirthdays()
+        getBirthdays()        
     except:
         print('Birthdays not found, leaving as empty')
     global bonkcountBGImage
@@ -168,9 +169,9 @@ async def on_connect():
     global kiryuBGImage
     bonkcountBGImage = await getBackgroundImage(allImages["misc"][0])
     respectBGImage = await getBackgroundImage(allImages["misc"][1])
-    bonkedImage = await getBackgroundImage(allImages["misc"][12])
-    bonkerImage = await getBackgroundImage(allImages["misc"][13])
-    kiryuBGImage = await getBackgroundImage(allImages["misc"][14])
+    bonkedImage = await getBackgroundImage(allImages["misc"][11])
+    bonkerImage = await getBackgroundImage(allImages["misc"][12])
+    kiryuBGImage = await getBackgroundImage(allImages["misc"][13])
     print('Resources loaded')
 
 @bot.event
@@ -184,16 +185,17 @@ async def on_message_delete(message):
     if message.guild.id == nukeCode["misc"]["jannupals"]:
         # disregard messages deleted by groovy music bot
         if message.author != bot.get_user(nukeCode["user"]["groovyBOT"]):
-            # sends the deleted message back to deleted messages channel w/ timestamp
-            msgChannel = bot.get_channel(nukeCode["misc"]["deletedMsg"])
-            embed = discord.Embed(colour = discord.Colour.teal(),
-                                  description='Message sent by {0.mention} deleted in {1.mention}\n\n{2}'.format(message.author, message.channel, message.content))
-            embed.set_author(name=str(message.author), icon_url=message.author.avatar_url)
-            embed.set_footer(text=datetime.datetime.now(pytz.timezone('Asia/Tokyo')))
-            if len(message.attachments) > 0:
-                embed.set_image(url=message.attachments[0].proxy_url)
+            if not message.content.startswith(('!', '?', '-', '}', '.', '$', 't!')):
+                # sends the deleted message back to deleted messages channel w/ timestamp
+                msgChannel = bot.get_channel(nukeCode["misc"]["deletedMsg"])
+                embed = discord.Embed(colour = discord.Colour.teal(),
+                                    description='Message sent by {0.mention} deleted in {1.mention}\n\n{2}'.format(message.author, message.channel, message.content))
+                embed.set_author(name=str(message.author), icon_url=message.author.avatar_url)
+                embed.set_footer(text=datetime.datetime.now(pytz.timezone('Asia/Tokyo')))
+                if len(message.attachments) > 0:
+                    embed.set_image(url=message.attachments[0].proxy_url)
 
-            await msgChannel.send(embed=embed)
+                await msgChannel.send(embed=embed)
 
 @bot.event
 async def on_message(message):
@@ -220,9 +222,6 @@ async def on_message(message):
 #send Riot pic
     if message.content.lower().find('riot') != -1:
         await message.channel.send(allImages["misc"][4])
-#send Mango memorial
-#    elif message.content.lower().find(' mango ') != -1:
-#        await message.channel.send(allImages["misc"][5])
 #send Solaire
     elif message.content.lower().find('praise the sun') != -1:
         await message.channel.send(allImages["misc"][6])
@@ -234,10 +233,6 @@ async def on_message(message):
         if message.content.lower().find('aai') > message.content.lower().find('ra'):
             if message.content.lower().find('id') > message.content.lower().find('aai'):
                 await message.channel.send(allImages["misc"][8])
-
-#counters Uwaaru
-    if message.content.find(emojis['uwaaru']) != -1:
-        await message.channel.send(allImages["misc"][9])
 
 #fixes accidental Europa bot mentions
     if len(message.mentions) > 0:
@@ -257,7 +252,7 @@ async def help(ctx):
         embed.add_field(name='Global Commands', value="`up` `checkImages` `truck` `bonk` `evade` `F` `votestart` `yeet` `emote` `baka` `UStime`", inline=False)
         embed.add_field(name='Jannupals-Exclusive Commands', value="`down` `bday` `birthday` `queue` `next` `clearqueue` `remove` `bonkcounter` `cleaning`", inline=False)
         embed.add_field(name='Keywords Bot will React to', value='`aaaaa` `riot` `cricket cricket` `raaid` `Praise the sun` `stickbug`', inline=False)
-        embed.add_field(name='Other stuff', value='''[Source Code](https://github.com/shironats/Jannubot/blob/V3.00_12/12/DiscordBot.py)
+        embed.add_field(name='Other stuff', value='''[Source Code](https://github.com/shironats/Jannubot/blob/master/DiscordBot.py)
                                                     [Jannubot invite link](https://discord.com/api/oauth2/authorize?client_id=731865140068089897&permissions=523328&scope=bot)''', inline=False)
         await ctx.send(embed=embed)
 
@@ -483,10 +478,10 @@ async def evade(ctx):
     # evade chance of 2/20
     if((random.randint(1,20) > 15) or (ctx.author.id == nukeCode["user"]["invar"])):
         link = allImages["evade"][random.randrange(0,len(evadeImages))]
-        embed = discord.Embed(colour = discord.Colour.teal(), description = "{0.mention} evades the bonk.".format(ctx.message.author))
+        embed = discord.Embed(colour = discord.Colour.teal(), description = "{0.mention} evades the thing.".format(ctx.message.author))
     else:
         link = allImages["bonk"][random.randrange(0,len(bonkImages))]
-        embed = discord.Embed(colour = discord.Colour.teal(), description = "{0.mention} is BONKED again by {1.mention} for trying to evade the bonk.".format(ctx.message.author, bot.user))
+        embed = discord.Embed(colour = discord.Colour.teal(), description = "{0.mention} is BONKED again by {1.mention} for trying to evade the thing.".format(ctx.message.author, bot.user))
     embed.set_image(url='attachment://img%s' %(link[link.find(".",link.find(".com")+1):]))
     await sendSinglePic(ctx, link, embed)
 
@@ -796,6 +791,7 @@ async def UStime(ctx, jst: str = "now"):
 async def asd(ctx):
     server = ctx.guild
     emojis = [str(x) for x in server.emojis]
+    emojis.sort()
     emojis1 = emojis[0:len(emojis)//2]
     emojis2 = emojis[len(emojis)//2:-1]
     await ctx.send(" ".join(emojis1))
