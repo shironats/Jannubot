@@ -60,6 +60,12 @@ nukeCode = {"user"      : userID,
             "role"      : roles,
             "misc"      : miscID}
 
+bonkImmune = [nukeCode["user"]["self"],
+              nukeCode["user"]["invar"],
+              nukeCode["user"]["sol"],
+              nukeCode["user"]["yonji"],
+              nukeCode["user"]["mango"]]
+
 #============== IMAGES & GLOBAL VARIABLE =========
 downImages = ['https://i.imgur.com/q4H83FZ.jpg',
               'https://i.imgur.com/h2V3SaO.jpg',
@@ -430,8 +436,7 @@ async def bonk(ctx, member: discord.Member, reason = "being bad"):
         link = allImages["bonk"][random.randrange(0,len(bonkImages))]
 
     #returns bonk to sender if targeted at dev
-    if ((member == bot.get_user(nukeCode["user"]["self"])) or (member == bot.get_user(nukeCode["user"]["invar"])) 
-    or (ctx.author.id == nukeCode["user"]["malsi"]) or (ctx.author.id == nukeCode["user"]["islam"])):
+    if (member.id in bonkImmune) or (ctx.author.id == nukeCode["user"]["malsi"]) or (ctx.author.id == nukeCode["user"]["islam"]):
         embed = discord.Embed(colour = discord.Colour.teal(), description = "{0.mention} has been BONKED by {1.mention} for {2}.".format(ctx.message.author, member, reason))
         memberIDs = (str(ctx.author.id), str(member.id))
     else:
@@ -474,7 +479,7 @@ async def bonkcounter(ctx, member: discord.Member = None):
 async def evade(ctx):
     """Roll for evasion"""
     # evade chance of 2/20
-    if((random.randint(1,20) > 15) or (ctx.author.id == nukeCode["user"]["invar"])):
+    if((random.randint(1,20) > 15) or (ctx.author.id in bonkImmune)):
         link = allImages["evade"][random.randrange(0,len(evadeImages))]
         embed = discord.Embed(colour = discord.Colour.teal(), description = "{0.mention} evades the thing.".format(ctx.message.author))
     else:
