@@ -769,19 +769,14 @@ async def UStime(ctx, jst: str = "now"):
                 embed.set_author(name='%s JST'%(jst))
             except:
                 await UStime(ctx, "wrong")
-            else:
-                # converts requested time to specified timezones
-                HSTTime = UTCTime.astimezone(pytz.timezone('US/Hawaii'))
-                PSTTime = UTCTime.astimezone(pytz.timezone('America/Los_Angeles'))
-                MSTTime = UTCTime.astimezone(pytz.timezone('America/Denver'))
-                CSTTime = UTCTime.astimezone(pytz.timezone('America/Chicago'))
-                ESTTime = UTCTime.astimezone(pytz.timezone('America/New_York'))
-                embed.add_field(name='HST', value=HSTTime.strftime("%X"), inline=False)
-                embed.add_field(name='PST', value=PSTTime.strftime("%X"), inline=False)
-                embed.add_field(name='MST', value=MSTTime.strftime("%X"), inline=False)
-                embed.add_field(name='CST', value=CSTTime.strftime("%X"), inline=False)
-                embed.add_field(name='EST', value=ESTTime.strftime("%X"), inline=False)
-                await ctx.send(embed=embed)
+        # converts requested time to specified timezones
+        timeList = cvtTime(UTCTime)
+        embed.add_field(name='HST', value=timeList[0].strftime("%X"), inline=False)
+        embed.add_field(name='PST', value=timeList[1].strftime("%X"), inline=False)
+        embed.add_field(name='MST', value=timeList[2].strftime("%X"), inline=False)
+        embed.add_field(name='CST', value=timeList[3].strftime("%X"), inline=False)
+        embed.add_field(name='EST', value=timeList[4].strftime("%X"), inline=False)
+        await ctx.send(embed=embed)
     else:
         await ctx.send("Please enter JST time in 2400 format or 'now'")
 
@@ -1089,6 +1084,14 @@ def getEmojis(server, isAnimated: bool):
             if '<a:' not in a:
                 final.append(a)
     return final
+
+def cvtTime(UTCTime):
+    HSTTime = UTCTime.astimezone(pytz.timezone('US/Hawaii'))
+    PSTTime = UTCTime.astimezone(pytz.timezone('America/Los_Angeles'))
+    MSTTime = UTCTime.astimezone(pytz.timezone('America/Denver'))
+    CSTTime = UTCTime.astimezone(pytz.timezone('America/Chicago'))
+    ESTTime = UTCTime.astimezone(pytz.timezone('America/New_York'))
+    return [HSTTime, PSTTime, MSTTime, CSTTime, ESTTime]
 
 #============== ASYNC FUNCTIONS =======================
 async def sendPics(ctx, imglink, withText, loopNum = 0):
