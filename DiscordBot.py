@@ -41,7 +41,6 @@ userID = {"haipa"       : IDHere,
           "nadekoBOT"   : IDHere,
           "jannuBOT"    : IDHere,
           "europaBOT"   : IDHere,
-          "groovyBOT"   : IDHere,
           "zeo"         : IDHere,
           "mango"       : IDHere,
           "nana"        : IDHere,
@@ -137,7 +136,6 @@ birthdays = {months[0]:'None (yet)',
 emojis = {"checkmark"   : '✅',
           "crossmark"   : '❌',
           "F"           : '🇫',
-          "uwaaru"      : '<:uwaaru:755820728175034489>',
           "catcry"      : '<:catcry:686044174570881027>',
           }
 
@@ -183,8 +181,8 @@ async def on_ready():
 @bot.event
 async def on_message_delete(message):
     if message.guild.id == nukeCode["misc"]["jannupals"]:
-        # disregard messages deleted by groovy music bot
-        if message.author != bot.get_user(nukeCode["user"]["groovyBOT"]):
+        # disregard deleted bot messages
+        if not message.author.bot:
             if not message.content.startswith(('!', '?', '-', '}', '.', '$', 't!')):
                 # sends the deleted message back to deleted messages channel w/ timestamp
                 msgChannel = bot.get_channel(nukeCode["misc"]["deletedMsg"])
