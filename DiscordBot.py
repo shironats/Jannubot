@@ -1,3 +1,4 @@
+import asyncio
 import discord
 from discord.ext import commands, tasks
 from discord.utils import get
@@ -21,7 +22,8 @@ bot = commands.Bot(command_prefix='}', activity=discord.Game(name='}help'), case
 bot.remove_command('help')
 
 #============== SENSITIVE NUMBERS ==============
-TOKEN = 'IDHere'
+#TOKEN = 'IDHere'   #jannubot
+TOKEN = 'IDHere'   #testbot
 SPREADSHEET_ID = 'IDHere'
 
 miscID = {"jannupals"   : IDHere, #server
@@ -32,8 +34,8 @@ miscID = {"jannupals"   : IDHere, #server
 
 roles = {"danchou"      : '<@&IDHere>',
          "officers"     : '<@&IDHere>',
-         "twinele"      : '<@&IDHere>',
-         "europa"       : '<@&IDHere>'}
+         "europa"       : '<@&IDHere>',
+         "members"      : IDHere}
 
 userID = {"haipa"       : IDHere,
           "self"        : IDHere,
@@ -60,11 +62,7 @@ nukeCode = {"user"      : userID,
             "role"      : roles,
             "misc"      : miscID}
 
-bonkImmune = [nukeCode["user"]["self"],
-              nukeCode["user"]["invar"],
-              nukeCode["user"]["sol"],
-              nukeCode["user"]["yonji"],
-              nukeCode["user"]["mango"]]
+bonkImmune = [nukeCode["user"]["self"]]
 
 #============== IMAGES & GLOBAL VARIABLE =========
 downImages = ['https://i.imgur.com/q4H83FZ.jpg',
@@ -153,9 +151,20 @@ ejected = """.      　。　　　•　    　ﾟ　　。　ﾟ
 ,　　　　.　 .　　    .             .                  ."""
 
 raidQueue = []
-myCurrentQueue = [0]
+lastQueue = []
+myCurrentQueue = None
 data_folder = Path("DiscordBot_source/")
 newLine = "\n"
+
+questions = []
+lockedQ = []
+#============== BOT STARTUP ===============================
+##async def run():
+##    try:
+##        await bot.connect()
+##        await bot.login(TOKEN)
+##    except KeyboardInterrupt:
+##        await bot.logout()
 
 #============== BOT EVENTS ================================
 @bot.event
@@ -163,9 +172,18 @@ async def on_connect():
     print('Connected')
     try:
         clearBirthdays()
-        getBirthdays()        
+        getBirthdays()
     except:
         print('Birthdays not found, leaving as empty')
+    try:
+        clearQuestions()
+        getQuestions()
+##        for i in questions:
+##            if i.count("'") > 2 or i.count('"') > 2:
+##                questions = []
+##                print('No questions found')
+    except:
+        print('No questions found')
     global bonkcountBGImage
     global respectBGImage
     global bonkedImage
@@ -183,6 +201,13 @@ async def on_ready():
     print('We have logged in as {0.user}'.format(bot))
     dev = bot.get_user(nukeCode["user"]["self"])
     await dev.send('I have logged on at {0}.'.format(datetime.datetime.now(pytz.timezone('Asia/Jakarta'))))
+    pals = bot.get_guild(nukeCode["misc"]["jannupals"])
+    chngColour.start(pals)
+
+@bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.CommandNotFound):
+        await ctx.send('No such command, try again.')
 
 @bot.event
 async def on_message_delete(message):
@@ -244,6 +269,20 @@ async def on_message(message):
             raidCode = message.content.split(" ")
             await message.delete()
             await message.channel.send("%s %s"%(nukeCode["role"]["europa"], raidCode[-1]))
+
+#talkshow questions
+    if message.channel.id == IDHere:                            #checks if message was sent in #jannutalk-guest
+#    if message.channel.id == nukeCode["misc"]["botfest"]:
+        if message.author.id == IDHere:                         #checks if sender was avrae bot
+            if message.content.lower().find('1d100') != -1:                 #checks if dice roll was 1d100
+                msgChannel = bot.get_channel(IDHere)            #gets #party-committee channel to send msg
+#                msgChannel = bot.get_channel(nukeCode["misc"]["botfest"])
+                index = int(message.content[message.content.rfind(' ')+1:]) #gets index number from dice roll
+                if index in lockedQ:                                        #if question was already asked
+                    await msgChannel.send("Question done, roll again")
+                else:                                                       #if question wasn't already asked
+                    lockedQ.append(index)                                   #lock the question
+                    await msgChannel.send(questions[index-1])               #send the question
 
     await bot.process_commands(message)
 
@@ -564,13 +603,14 @@ async def queue(ctx, raidName: str = "None"):
             raidQueue.append("%s by %s" %(raidName, ctx.message.author.mention))
             embed = discord.Embed(colour = discord.Colour.teal(), description = "Queued %s [%s]" %(raidName, ctx.message.author.mention))
             await ctx.send(embed=embed)
+            clrQ.start()
         else:
             if(len(raidQueue) == 0):
                 await ctx.send("```The queue is empty y'all```")
             else:
                 qString = "```"
                 for x in range(len(raidQueue)):
-                    if myCurrentQueue[0] == x:
+                    if myCurrentQueue == x:
                         qString = qString + "\t⬐ current raid" + newLine
                     # for members with nicknames
                     if(raidQueue[x].find("<@!") != -1):
@@ -582,7 +622,7 @@ async def queue(ctx, raidName: str = "None"):
                         qMember = await bot.get_guild(nukeCode["misc"]["jannupals"]).fetch_member(int(raidQueue[x][raidQueue[x].find("<@")+2:raidQueue[x].find(">", raidQueue[x].find("<@"))]))
                         qUser = qMember.display_name
                         qString = qString + str(x+1) + ") " + raidQueue[x][:raidQueue[x].find("<@")] + qUser + newLine
-                    if myCurrentQueue[0] == x:
+                    if myCurrentQueue == x:
                         qString = qString + "\t⬑ current raid" + newLine
                 qString += "```"
                 await ctx.send(qString)
@@ -598,12 +638,12 @@ async def next(ctx):
             embed = discord.Embed(colour = discord.Colour.teal(), description = "Please fill with `}queue`")
             embed.set_author(name = "Queue is empty")
         # reached last queue
-        elif myCurrentQueue[0] == (len(raidQueue)-1):
-            embed = discord.Embed(colour = discord.Colour.teal(), description = "Please add more with `}queue` or clear with `}clearqueue`")
+        elif myCurrentQueue == (len(raidQueue)-1):
+            embed = discord.Embed(colour = discord.Colour.teal(), description = "The current raid is %s.\nPlease add more with `}queue` or clear with `}clearqueue`" % (myCurrentQueue))
             embed.set_author(name = "You've reached the end of the queue")
         else:
-            myCurrentQueue[0] += 1
-            embed = discord.Embed(colour = discord.Colour.teal(), description = "%s" %(raidQueue[myCurrentQueue[0]]))
+            myCurrentQueue += 1
+            embed = discord.Embed(colour = discord.Colour.teal(), description = "%s" %(raidQueue[myCurrentQueue]))
             embed.set_author(name="Next Up")
         await ctx.send(embed=embed)
     else:
@@ -629,7 +669,7 @@ async def clearqueue(ctx):
     """Clears raid queue"""
     if(ctx.guild.id == nukeCode["misc"]["jannupals"]):
         raidQueue.clear()
-        myCurrentQueue[0] = 0
+        myCurrentQueue = 0
         await ctx.send("```Queue cleared```")
     else:
         await ctx.send("Sorry, permission denied.")
@@ -666,7 +706,7 @@ async def emote(ctx, emoteName: str = None):
         # create and initialize variable 'check'
         check = False
         for content in emotesList:
-            if emoteName.lower() in content.lower():
+            if (emoteName.lower() in content.lower()) and (check == False):
                 check = True
                 await ctx.send(content)
         if not check:
@@ -786,6 +826,12 @@ async def UStime(ctx, jst: str = "now"):
         await ctx.send("Please enter JST time in 2400 format or 'now'")
 
 @bot.command()
+async def restart(ctx):
+    if ctx.author.id == nukeCode["user"]["self"]:
+        await ctx.bot.logout()
+        await login(TOKEN)
+
+@bot.command()
 async def asd(ctx):
     server = ctx.guild
     emojis = [str(x) for x in server.emojis]
@@ -814,6 +860,12 @@ async def asd(ctx):
 ##                    bottomLeft[0], bottomLeft[1] = i, j
 ##    await ctx.send(str(topLeft)+"\t"+str(topRight)+"\n\n"+str(bottomLeft)+"\t"+str(bottomRight))
 
+@bot.command()
+async def nah(ctx):
+    if ctx.author.id == nukeCode["user"]["haipa"]:
+        msgChannel = bot.get_channel(790230279615938580)
+        lockedQ = []
+        await msgChannel.send("Question reset")
 
 #============== FUNCTIONS==============================
 def getBirthdays():
@@ -1098,6 +1150,15 @@ def cvtTime(UTCTime):
     ESTTime = UTCTime.astimezone(pytz.timezone('America/New_York'))
     return [HSTTime, PSTTime, MSTTime, CSTTime, ESTTime]
 
+def getQuestions():
+    textfile = data_folder/"Questions.txt"
+    lines = textfile.read_text().split("\n")
+    for iCounter in range(len(lines)):
+        questions.append(lines[iCounter])
+
+def clearQuestions():
+    questions = []
+
 #============== ASYNC FUNCTIONS =======================
 async def sendPics(ctx, imglink, withText, loopNum = 0):
     async with aiohttp.ClientSession() as session:
@@ -1180,4 +1241,21 @@ async def downSpamBot(target_channel):
     msgChannel = bot.get_channel(target_channel)
     await sendPics(msgChannel, link, True, downSpamBot.current_loop)
 
+@tasks.loop(minutes=10)
+async def chngColour(guildd):
+    role = guildd.get_role(nukeCode["role"]["members"])
+    clrVal = role.colour.value
+    if clrVal == 16777215:
+        await role.edit(colour=0)
+    else:
+        await role.edit(colour=clrVal+10)
+
+@tasks.loop(minutes=30, count=1)
+async def clrQ():
+    if lastQueue == raidQueue:
+        lastQueue = []
+        raidQueue = []
+
 bot.run(TOKEN)
+##loop = asyncio.get_event_loop()
+##loop.run_until_complete(run())
