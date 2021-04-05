@@ -1261,7 +1261,7 @@ async def downSpamBot(target_channel):
     msgChannel = bot.get_channel(target_channel)
     await sendPics(msgChannel, link, True, downSpamBot.current_loop)
 
-@tasks.loop(minutes=10)
+@tasks.loop(minutes=1)
 async def chngColour(guildd, clr):
     global lastClr
     if lastClr == None:
