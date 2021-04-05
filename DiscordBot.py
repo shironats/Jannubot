@@ -30,6 +30,8 @@ miscID = {"jannupals"   : IDHere, #server
           "botfest"     : IDHere, #channel
           "general"     : IDHere, #channel
           "deletedMsg"  : IDHere, #channel
+          "talk-guest"  : IDHere, #channel
+          "committee"   : IDHere, #channel
           }
 
 roles = {"danchou"      : '<@&IDHere>',
@@ -43,6 +45,7 @@ userID = {"haipa"       : IDHere,
           "nadekoBOT"   : IDHere,
           "jannuBOT"    : IDHere,
           "europaBOT"   : IDHere,
+          "avraeBOT"    : IDHere,
           "zeo"         : IDHere,
           "mango"       : IDHere,
           "nana"        : IDHere,
@@ -158,13 +161,7 @@ newLine = "\n"
 
 questions = []
 lockedQ = []
-#============== BOT STARTUP ===============================
-##async def run():
-##    try:
-##        await bot.connect()
-##        await bot.login(TOKEN)
-##    except KeyboardInterrupt:
-##        await bot.logout()
+lastClr = None
 
 #============== BOT EVENTS ================================
 @bot.event
@@ -191,9 +188,9 @@ async def on_connect():
     global kiryuBGImage
     bonkcountBGImage = await getBackgroundImage(allImages["misc"][0])
     respectBGImage = await getBackgroundImage(allImages["misc"][1])
-    bonkedImage = await getBackgroundImage(allImages["misc"][11])
-    bonkerImage = await getBackgroundImage(allImages["misc"][12])
-    kiryuBGImage = await getBackgroundImage(allImages["misc"][13])
+    bonkedImage = await getBackgroundImage(allImages["misc"][12])
+    bonkerImage = await getBackgroundImage(allImages["misc"][13])
+    kiryuBGImage = await getBackgroundImage(allImages["misc"][14])
     print('Resources loaded')
 
 @bot.event
@@ -202,7 +199,15 @@ async def on_ready():
     dev = bot.get_user(nukeCode["user"]["self"])
     await dev.send('I have logged on at {0}.'.format(datetime.datetime.now(pytz.timezone('Asia/Jakarta'))))
     pals = bot.get_guild(nukeCode["misc"]["jannupals"])
-    chngColour.start(pals)
+    clr = {"home"   : [79, 211, 206],
+           "red"    : [255, 0, 0],
+           "orange" : [255, 165, 0],
+           "yellow" : [255, 255, 0],
+           "green"  : [0, 128, 0],
+           "blue"   : [0, 0, 255],
+           "indigo" : [75, 0, 130],
+           "violet" : [238, 130, 238]}
+    chngColour.start(pals, clr)
 
 @bot.event
 async def on_command_error(ctx, error):
@@ -271,12 +276,10 @@ async def on_message(message):
             await message.channel.send("%s %s"%(nukeCode["role"]["europa"], raidCode[-1]))
 
 #talkshow questions
-    if message.channel.id == IDHere:                            #checks if message was sent in #jannutalk-guest
-#    if message.channel.id == nukeCode["misc"]["botfest"]:
-        if message.author.id == IDHere:                         #checks if sender was avrae bot
+    if message.channel.id == nukeCode["misc"]["talk-guest"]:                #checks if message was sent in #jannutalk-guest
+        if message.author.id == nukeCode["user"]["avraeBOT"]:               #checks if sender was avrae bot
             if message.content.lower().find('1d100') != -1:                 #checks if dice roll was 1d100
-                msgChannel = bot.get_channel(IDHere)            #gets #party-committee channel to send msg
-#                msgChannel = bot.get_channel(nukeCode["misc"]["botfest"])
+                msgChannel = bot.get_channel(nukeCode["misc"]["committee"]) #gets #party-committee channel to send msg
                 index = int(message.content[message.content.rfind(' ')+1:]) #gets index number from dice roll
                 if index in lockedQ:                                        #if question was already asked
                     await msgChannel.send("Question done, roll again")
@@ -1159,6 +1162,23 @@ def getQuestions():
 def clearQuestions():
     questions = []
 
+def toColour(clrFrom, clrTo):
+    newClr = []
+    for i in range(3):
+        if clrFrom[i] < clrTo[i]:
+            newClr.append(clrFrom[i] + 1)
+        elif clrFrom[i] > clrTo[i]:
+            newClr.append(clrFrom[i] - 1)
+        else:
+            newClr.append(clrFrom[i])
+    return newClr
+
+def checkColour(clrOne, clrTwo, clrThree):
+    if (clrOne[0] == clrTwo[0]) and (clrOne[1] == clrTwo[1]) and (clrOne[2] == clrTwo[2]):
+        return toColour(clrOne, clrThree)
+    else:
+        return toColour(clrOne, clrTwo)
+
 #============== ASYNC FUNCTIONS =======================
 async def sendPics(ctx, imglink, withText, loopNum = 0):
     async with aiohttp.ClientSession() as session:
@@ -1242,13 +1262,50 @@ async def downSpamBot(target_channel):
     await sendPics(msgChannel, link, True, downSpamBot.current_loop)
 
 @tasks.loop(minutes=10)
-async def chngColour(guildd):
+async def chngColour(guildd, clr):
+    global lastClr
+    if lastClr == None:
+        lastClr = 'unk'
     role = guildd.get_role(nukeCode["role"]["members"])
-    clrVal = role.colour.value
-    if clrVal == 16777215:
-        await role.edit(colour=0)
-    else:
-        await role.edit(colour=clrVal+10)
+    clrVal = [role.colour.r, role.colour.g, role.colour.b]
+    newVal = []
+    if lastClr == 'unk':
+        newVal = checkColour(clrVal, clr["home"], clr["red"])
+        if clrVal == clr["home"]:
+            lastClr = "home"
+    elif lastClr == 'home':
+        newVal = checkColour(clrVal, clr["red"], clr["orange"])
+        if clrVal == clr["red"]:
+            lastClr = "red"
+    elif lastClr == 'red':
+        newVal = checkColour(clrVal, clr["orange"], clr["yellow"])
+        if clrVal == clr["orange"]:
+            lastClr = "orange"
+    elif lastClr == 'orange':
+        newVal = checkColour(clrVal, clr["yellow"], clr["green"])
+        if clrVal == clr["yellow"]:
+            lastClr = "yellow"
+    elif lastClr == 'yellow':
+        newVal = checkColour(clrVal, clr["green"], clr["blue"])
+        if clrVal == clr["green"]:
+            lastClr = "green"
+    elif lastClr == 'green':
+        newVal = checkColour(clrVal, clr["blue"], clr["indigo"])
+        if clrVal == clr["blue"]:
+            lastClr = "blue"
+    elif lastClr == 'blue':
+        newVal = checkColour(clrVal, clr["indigo"], clr["violet"])
+        if clrVal == clr["indigo"]:
+            lastClr = "indigo"
+    elif lastClr == 'indigo':
+        newVal = checkColour(clrVal, clr["violet"], clr["red"])
+        if clrVal == clr["violet"]:
+            lastClr = "violet"
+    elif lastClr == 'violet':
+        newVal = checkColour(clrVal, clr["red"], clr["orange"])
+        if clrVal == clr["red"]:
+            lastClr = "red"
+    await role.edit(colour=discord.Colour.from_rgb(newVal[0], newVal[1], newVal[2]))
 
 @tasks.loop(minutes=30, count=1)
 async def clrQ():
@@ -1257,5 +1314,3 @@ async def clrQ():
         raidQueue = []
 
 bot.run(TOKEN)
-##loop = asyncio.get_event_loop()
-##loop.run_until_complete(run())
