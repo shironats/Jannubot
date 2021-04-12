@@ -133,7 +133,6 @@ ejected = """.      　。　　　•　    　ﾟ　　。　ﾟ
 ,　　　　.　 .　　    .             .                  ."""
 
 raidQueue = []
-lastQueue = []
 myCurrentQueue = 0
 data_folder = Path("DiscordBot_source/")
 newLine = "\n"
@@ -585,7 +584,11 @@ async def queue(ctx, raidName: str = "None"):
             raidQueue.append("%s by %s" %(raidName, ctx.message.author.mention))
             embed = discord.Embed(colour = discord.Colour.teal(), description = "Queued %s [%s]" %(raidName, ctx.message.author.mention))
             await ctx.send(embed=embed)
-            clrQ.start()
+            if clrQ.is_running():
+                clrQ.cancel()
+                clrQ.restart()
+            else:
+                clrQ.start()
         else:
             if(len(raidQueue) == 0):
                 await ctx.send("```The queue is empty y'all```")
@@ -1284,11 +1287,11 @@ async def chngColour(guildd, clr):
             lastClr = "red"
     await role.edit(colour=discord.Colour.from_rgb(newVal[0], newVal[1], newVal[2]))
 
-@tasks.loop(minutes=30, count=1)
+@tasks.loop(minutes=30, count=2)
 async def clrQ():
+    print(clrQ.current_loop)
     global myCurrentQueue
-    if lastQueue == raidQueue:
-        lastQueue.clear()
+    if clrQ.current_loop == 1:
         raidQueue.clear()
         myCurrentQueue = 0
 
