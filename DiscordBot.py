@@ -26,40 +26,11 @@ bot.remove_command('help')
 TOKEN = 'IDHere'   #testbot
 SPREADSHEET_ID = 'IDHere'
 
-miscID = {"jannupals"   : IDHere, #server
-          "botfest"     : IDHere, #channel
-          "general"     : IDHere, #channel
-          "deletedMsg"  : IDHere, #channel
-          "talk-guest"  : IDHere, #channel
-          "committee"   : IDHere, #channel
-          }
+miscID = {IDHere}
 
-roles = {"danchou"      : '<@&IDHere>',
-         "officers"     : '<@&IDHere>',
-         "europa"       : '<@&IDHere>',
-         "members"      : IDHere}
+roles = {IDHere}
 
-userID = {"haipa"       : IDHere,
-          "self"        : IDHere,
-          "sol"         : IDHere,
-          "nadekoBOT"   : IDHere,
-          "jannuBOT"    : IDHere,
-          "europaBOT"   : IDHere,
-          "avraeBOT"    : IDHere,
-          "zeo"         : IDHere,
-          "mango"       : IDHere,
-          "nana"        : IDHere,
-          "bunny"       : IDHere,
-          "wayne"       : IDHere,
-          "yonji"       : IDHere,
-          "joe"         : IDHere,
-          "chinpo"      : IDHere,
-          "lilium"      : IDHere,
-          "alwing"      : IDHere,
-          "malsi"       : IDHere,
-          "islam"       : IDHere,
-          "invar"       : IDHere,
-          }
+userID = {IDHere}
 
 nukeCode = {"user"      : userID,
             "role"      : roles,
@@ -183,10 +154,6 @@ async def on_connect():
     try:
         clearQuestions()
         getQuestions()
-##        for i in questions:
-##            if i.count("'") > 2 or i.count('"') > 2:
-##                questions = []
-##                print('No questions found')
     except:
         print('No questions found')
     global bonkcountBGImage
@@ -276,13 +243,6 @@ async def on_message(message):
         if message.content.lower().find('aai') > message.content.lower().find('ra'):
             if message.content.lower().find('id') > message.content.lower().find('aai'):
                 await message.channel.send(allImages["misc"][8])
-
-#fixes accidental Europa bot mentions
-    if len(message.mentions) > 0:
-        if bot.get_user(nukeCode["user"]["europaBOT"]) in message.mentions:
-            raidCode = message.content.split(" ")
-            await message.delete()
-            await message.channel.send("%s %s"%(nukeCode["role"]["europa"], raidCode[-1]))
 
 #talkshow questions
     if message.channel.id == nukeCode["misc"]["talk-guest"]:                #checks if message was sent in #jannutalk-guest
@@ -654,6 +614,7 @@ async def queue(ctx, raidName: str = "None"):
 @bot.command(aliases=['n'])
 async def next(ctx):
     """Next raid up"""
+    global myCurrentQueue
     if(ctx.guild.id == nukeCode["misc"]["jannupals"]):
         # empty queue
         if len(raidQueue) == 0:
@@ -689,6 +650,7 @@ async def remove(ctx, entry: int):
 @bot.command(aliases=['c'])
 async def clearqueue(ctx):
     """Clears raid queue"""
+    global myCurrentQueue
     if(ctx.guild.id == nukeCode["misc"]["jannupals"]):
         raidQueue.clear()
         myCurrentQueue = 0
@@ -880,11 +842,12 @@ async def asd(ctx):
 async def nah(ctx):
     if ctx.author.id == nukeCode["user"]["haipa"]:
         msgChannel = bot.get_channel(790230279615938580)
-        lockedQ = []
+        lockedQ.clear()
         await msgChannel.send("Question reset")
 
 #============== FUNCTIONS==============================
 def getBirthdays():
+    global birthdays
     currentMonth = ""
     textfile = data_folder/"JannupalsBirthdays.txt"
     lines = textfile.read_text().split("\n")
@@ -900,6 +863,7 @@ def getBirthdays():
                 birthdays[currentMonth] = myString
 
 def clearBirthdays():
+    global birthdays
     for i in months:
         birthdays[i] = 'None (yet)'
 
@@ -1173,7 +1137,7 @@ def getQuestions():
         questions.append(lines[iCounter])
 
 def clearQuestions():
-    questions = []
+    questions.clear()
 
 def toColour(clrFrom, clrTo):
     newClr = []
@@ -1274,7 +1238,7 @@ async def downSpamBot(target_channel):
     msgChannel = bot.get_channel(target_channel)
     await sendPics(msgChannel, link, True, downSpamBot.current_loop)
 
-@tasks.loop(minutes=10)
+@tasks.loop(minutes=30)
 async def chngColour(guildd, clr):
     global lastClr
     if lastClr == None:
@@ -1322,9 +1286,10 @@ async def chngColour(guildd, clr):
 
 @tasks.loop(minutes=30, count=1)
 async def clrQ():
+    global myCurrentQueue
     if lastQueue == raidQueue:
-        lastQueue = []
-        raidQueue = []
+        lastQueue.clear()
+        raidQueue.clear()
         myCurrentQueue = 0
 
 bot.run(TOKEN)
