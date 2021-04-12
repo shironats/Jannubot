@@ -100,6 +100,13 @@ evadeImages = ['https://i.imgur.com/ruwTwKI.png',
                'https://i.imgur.com/uYd12fT.png',
                'https://i.imgur.com/N8NCQWH.jpg']
 
+patImages = ['https://i.imgur.com/jiJzooD.gif',
+             'https://i.imgur.com/LJtzrN4.gif',
+             'https://i.imgur.com/58GIRpr.gif',
+             'https://i.imgur.com/SFYjDVU.gif',
+             'https://i.imgur.com/GPtdsBV.gif',
+             'https://i.imgur.com/vjeuI7T.gif']
+
 miscImages = ['https://i.imgur.com/h7xGExX.png',    #bonkcounterBG
               'https://i.imgur.com/4LVGMPn.jpg',    #respectBG
               'https://i.imgur.com/8n1zvzR.jpg',    #aaaaa
@@ -122,6 +129,7 @@ allImages = {"down"     : downImages,
              "truck"    : truckImages,
              "bonk"     : bonkImages,
              "evade"    : evadeImages,
+             "pat"      : patImages,
              "misc"     : miscImages}
 
 months = ['January','February','March','April','May','June','July',
@@ -155,7 +163,7 @@ ejected = """.      　。　　　•　    　ﾟ　　。　ﾟ
 
 raidQueue = []
 lastQueue = []
-myCurrentQueue = None
+myCurrentQueue = 0
 data_folder = Path("DiscordBot_source/")
 newLine = "\n"
 
@@ -206,7 +214,8 @@ async def on_ready():
            "green"  : [0, 128, 0],
            "blue"   : [0, 0, 255],
            "indigo" : [75, 0, 130],
-           "violet" : [238, 130, 238]}
+           "violet" : [238, 130, 238],
+           }#poop brown #CE534E
     chngColour.start(pals, clr)
 
 @bot.event
@@ -472,7 +481,7 @@ async def truck(ctx, member: discord.Member):
 async def bonk(ctx, member: discord.Member, reason = "being bad"):
     """Bonks a member"""
     # use special bonk image for joe and chinpo
-    if ((member == bot.get_user(nukeCode["user"]["joe"])) or (member == bot.get_user(nukeCode["user"]["chinpo"]))):
+    if ((member.id == nukeCode["user"]["joe"]) or (member.id == nukeCode["user"]["chinpo"])):
         link = allImages["misc"][10]
     else:
         link = allImages["bonk"][random.randrange(0,len(bonkImages))]
@@ -530,6 +539,16 @@ async def evade(ctx):
     embed.set_image(url='attachment://img%s' %(link[link.find(".",link.find(".com")+1):]))
     await sendSinglePic(ctx, link, embed)
 
+@bot.command()
+async def pat(ctx, member: discord.Member, message = ""):
+    """Pats someone"""
+    if message == "":
+        message = "pat"
+    link = allImages["pat"][random.randrange(0,len(patImages))]
+    embed = discord.Embed(colour = discord.Colour.teal(), description = "{0.mention} has been *pap pap papped* by {1.mention}.\n{2}".format(member, ctx.message.author, message))
+    embed.set_image(url='attachment://img%s' %(link[link.find(".",link.find(".com")+1):]))
+    await sendSinglePic(ctx, link, embed)
+    
 @bot.command()
 async def bday(ctx):
     """Birthdays"""
@@ -827,12 +846,6 @@ async def UStime(ctx, jst: str = "now"):
         await ctx.send(embed=embed)
     else:
         await ctx.send("Please enter JST time in 2400 format or 'now'")
-
-@bot.command()
-async def restart(ctx):
-    if ctx.author.id == nukeCode["user"]["self"]:
-        await ctx.bot.logout()
-        await login(TOKEN)
 
 @bot.command()
 async def asd(ctx):
@@ -1261,7 +1274,7 @@ async def downSpamBot(target_channel):
     msgChannel = bot.get_channel(target_channel)
     await sendPics(msgChannel, link, True, downSpamBot.current_loop)
 
-@tasks.loop(minutes=1)
+@tasks.loop(minutes=10)
 async def chngColour(guildd, clr):
     global lastClr
     if lastClr == None:
@@ -1312,5 +1325,6 @@ async def clrQ():
     if lastQueue == raidQueue:
         lastQueue = []
         raidQueue = []
+        myCurrentQueue = 0
 
 bot.run(TOKEN)
